@@ -1,4 +1,4 @@
-<a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Arial&weight=500&size=19&pause=1000&color=C20001&center=true&vCenter=true&multiline=true&repeat=false&random=true&width=500&lines=CBPFNet(Covalent+Bond+Peak+Force+Prediction+Network)" alt="Typing SVG" /></a>
+<a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Arial&weight=500&size=30&pause=1000&color=C20001&center=true&vCenter=true&multiline=true&repeat=false&random=true&width=500&lines=CBPFNet" alt="Typing SVG" /></a>
 
 > find . -name OUTCAR > paths.log
 >
