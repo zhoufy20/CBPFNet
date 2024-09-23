@@ -34,8 +34,8 @@ sed -i "s#^.#${PWD}#g" paths.log
 from data.build_dataset import BuildDatabase
 
 if __name__ == '__main__':
-    database = BuildDatabase(path_file='..../paths.log', dataset_path="dataset/Dataset")
-    database.build()
+	database = BuildDatabase(path_file='..../paths.log', dataset_path="dataset/Dataset")
+	database.build()
 `````
 
 
@@ -48,9 +48,9 @@ There are several Instructions for data process ,model training and test.
 from models.predict import Test
 
 if __name__ == '__main__':
-    # model training
-    f = Fit(dataset_path='dataset/Dataset/all_graphs.bin', output_files='out_put/train')
-    f.fit()
+	# model training
+	f = Fit(dataset_path='dataset/Dataset/all_graphs.bin', output_files='out_put/train')
+	f.fit()
     
 	# model test
 	t = Test(path_file='../Dataset/paths.log', output_files='out_put/datasetpredict')
