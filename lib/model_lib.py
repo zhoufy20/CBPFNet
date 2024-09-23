@@ -314,7 +314,7 @@ def generatecontcar(outpath, contcarpath):
     orignalbondlength = np.linalg.norm(vecneiatoms)
 
     stretch_factor = 0.02
-    filenums = 40
+    filenums = 60
     bglist = []
     strainlist = []
     for filenum in range(filenums):

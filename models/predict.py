@@ -6,6 +6,8 @@
 
 import numpy as np
 import os
+import time
+import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
@@ -98,11 +100,18 @@ class Test(object):
 
     def output(self, **test_config):
         self.test_config = {**self.test_config, **config_parser(test_config)}
+        trainlogpath = os.path.join(self.test_config['output_files'], 'train.log')
+        self.log = open(trainlogpath, 'w', buffering=1)
 
+        start_time = time.time()
         inipaths = findinistru(self.test_config["path_file"])
         current_directory = os.getcwd()
         f_csv = open(os.path.join(self.test_config['output_files'], 'fname_path.csv'), 'w', buffering=1)
 
+        print('========================================================================', file=self.log)
+        print(self.model, file=self.log)
+        print('========================================================================', file=self.log)
+        print("Epoch  prepeakforce  truepeakforce  error  realativeerror  Dur_(s)  Train_info", file=self.log)
         # inipath:Testset/C2H5CCCH_2/0/
         for index, inipath in enumerate(inipaths):
             preresultantforcelist = []
@@ -125,23 +134,38 @@ class Test(object):
             prepeakforce = max(preresultantforcelist)
             eneforlenarray = findpeakforce(os.path.abspath(os.path.join(inipath, "..")))
             truepeakforce = max(eneforlenarray[1,:])
+            error = prepeakforce-truepeakforce
+            realativeerror = error/truepeakforce
+            dur = time.time() - start_time
+            print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:10.1f} Train_info".format(
+                index, prepeakforce, truepeakforce, error, realativeerror, dur), file=self.log)
 
-            print(index, prepeakforce, truepeakforce)
             f_csv.write(f'POSCAR{index}' + ',  ' + inipath + ',  ')
-            f_csv.write(str(prepeakforce) + ',  ' + str(truepeakforce) + '\n')
-            os.chdir(current_directory)
+            f_csv.write(str(prepeakforce) + ',  ' + str(truepeakforce) + ',  ' +
+                        str(error) +',  ' + str(realativeerror) +'\n')
 
-            # import matplotlib.pyplot as plt
-            # import numpy as np
-            #
-            # plt.plot(strainlist, preresultantforcelist)
-            #
-            # plt.xlabel('strain')
-            # plt.ylabel('force')
-            # plt.title('force-strain plot')
-            # plt.savefig(f"forces{index}.png")
+
+            plt.figure(figsize=(10, 6))  # 调整图表大小
+            # 绘制第一条曲线，指定颜色和标记
+            plt.plot(preresultantforcelist, label='Prediction', color='blue', marker='o', linestyle='-',
+                     linewidth=2, markersize=8)
+
+            # 绘制第二条曲线，指定不同的颜色和标记
+            plt.plot(eneforlenarray[1, :], label='Truth', color='green', marker='s', linestyle='--',
+                     linewidth=2, markersize=8)
+
+            plt.xlabel('Stretch epoch', fontsize=14)  # 调整字体大小
+            plt.ylabel('Force of prediction and true', fontsize=14)
+            plt.title(f"POSCAR{index}-Force-Strain Plot", fontsize=16)
+
+            plt.grid(True, which='both', linestyle='--', linewidth=0.5)  # 添加网格
+            plt.legend()  # 添加图例
+
+            plt.savefig(f"forces{index}.png", dpi=300)  # 保存高质量图像
             # plt.show()
+            plt.close()
 
+            os.chdir(current_directory)
 
 if __name__ == '__main__':
     from data.build_dataset import BuildDatabase
