@@ -1,8 +1,8 @@
-<a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Times+New+Roman&weight=100&size=30&pause=1000&color=000000&center=true&vCenter=true&repeat=false&width=600&lines=Covalent+Bond+Peak+Force+Prediction+Network" alt="Typing SVG" /></a>
+<img src="https://readme-typing-svg.demolab.com?font=Times+New+Roman&weight=100&size=30&pause=1000&color=000000&center=true&vCenter=true&repeat=false&width=600&lines=Covalent+Bond+Peak+Force+Prediction+Network" alt="Typing SVG" />
+
+<img src="./assets/C2H6CHCCH.gif" alt="C2H6CHCCH" style="zoom: 50%;" />
 
 we introduce CBPFNet (Covalent Bond Peak Force Prediction Network), a graph attention neural network model, which successfully simulates the dynamic process of covalent bond cleavage and accurately predicts the stress response of covalent bonds under various mechanical loads. Our model provides a perspective for training molecular datasets using GATs and defining covalent bond strength criteria, providing a powerful and open tool for predicting covalent bond peak force.
-
-
 
 
 

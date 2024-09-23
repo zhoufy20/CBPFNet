@@ -380,7 +380,7 @@ def findpeakforce(inipaths):
             # read the energy
             num_atoms = len(frames_outcar[0])
             free_energy = [x.get_total_energy() for x in frames_outcar]
-            free_energy_per_atom = int(free_energy[0]) / num_atoms
+            free_energy_per_atom = free_energy[0] / num_atoms
             eneforlenarray[0, int(dir_name)] = free_energy_per_atom
 
             # read the force
