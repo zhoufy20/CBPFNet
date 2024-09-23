@@ -53,8 +53,8 @@ if __name__ == '__main__':
     f.fit()
     
 	# model test
-    t = Test(path_file='../Dataset/paths.log', output_files='out_put/datasetpredict')
-    t.output()```
+	t = Test(path_file='../Dataset/paths.log', output_files='out_put/datasetpredict')
+	t.output()
 ```
 
 
