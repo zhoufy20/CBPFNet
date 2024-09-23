@@ -9,10 +9,10 @@ from models.fit import Fit
 from models.predict import Test
 
 if __name__ == '__main__':
-    database = BuildDatabase(path_file='../Dataset/paths.log', dataset_path="dataset/Dataset", num_of_cores=32)
-    database.build()
-    f = Fit(dataset_path='dataset/Dataset/all_graphs.bin', output_files='out_put/train')
-    f.fit()
+    # database = BuildDatabase(path_file='../Dataset/paths.log', dataset_path="dataset/Dataset", num_of_cores=32)
+    # database.build()
+    # f = Fit(dataset_path='dataset/Dataset/all_graphs.bin', output_files='out_put/train')
+    # f.fit()
 
     t = Test(path_file='../Dataset/paths.log', output_files='out_put/datasetpredict')
     t.output()
