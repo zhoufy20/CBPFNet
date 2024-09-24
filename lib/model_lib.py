@@ -229,7 +229,7 @@ def PearsonR(y_true, y_pred):
     return torch.divide(above, below)
 
 def findinistru(file_path):
-    # end with '0/0' file
+    """return a path list, contains the initial contcar file, which end with /0/"""
     inipaths = []
     with open(file_path, 'r') as file:
         for line in file:
@@ -297,33 +297,31 @@ def findsamesideatom(contcarpath):
     neiatoms = list(sameside_indices)
     return  vectorstre, neiatoms
 
-def generatecontcar(outpath, contcarpath):
-    """from initial structure, artificial simulation of bond breaking process"""
-    vectorstre, neiatoms = findsamesideatom(contcarpath)
+def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_factor = 0.02, filenums = 20):
+    """Return a list of dgl graph, from initial structure, artificial simulation of bond breaking process"""
+    vectorstre, neiatomsside = findsamesideatom(contcarpath)
     frames_contcar = read(contcarpath, index='-1:')
     atoms = frames_contcar[-1]
-    ordinalatoms = findordinalatoms(contcarpath)
     os.chdir(outpath)
     ase.io.write('POSCAR', atoms, format='vasp', append='w')
 
     # calc the original bond length
+    ordinalatoms = findordinalatoms(contcarpath)
     vecneiatoms = atoms.positions[ordinalatoms[0]] - atoms.positions[ordinalatoms[1]]
     orignalbondlength = np.linalg.norm(vecneiatoms)
 
-    stretch_factor = 0.02
-    filenums = 60
     bglist = []
-    strainlist = []
+    predictionstrainlist = []
     for filenum in range(filenums):
-        for neiatom in neiatoms:
+        for neiatom in neiatomsside:
             new_position = [atoms.positions[neiatom][i] + vectorstre[i] * stretch_factor for i in range(3)]
             atoms.positions[neiatom] = new_position
-        # atoms.positions = add_gaussian_noise(atoms.positions, ordinalatoms)
-
+        if whether_gaussian_noise:
+            mynoise = add_gaussian_noise(atoms.positions, ordinalatoms)
         vecneiatoms = atoms.positions[ordinalatoms[0]] - atoms.positions[ordinalatoms[1]]
         distance = np.linalg.norm(vecneiatoms)
         strain = distance / orignalbondlength - 1
-        strainlist.append(strain)
+        predictionstrainlist.append(strain)
 
         poscar_filename = f"POSCAR{filenum}"
         ase.io.write(poscar_filename, atoms, format='vasp', append='w')
@@ -332,10 +330,10 @@ def generatecontcar(outpath, contcarpath):
         database = BuildOneGraph(path_file=poscar_filename, num_of_cores=1)
         bg = database.build()
         bglist.append(bg)
-    return bglist, ordinalatoms, strainlist
+    return bglist, neiatomsside, predictionstrainlist
 
 
-def add_gaussian_noise(atom_coordinates, ordinalatoms, noise_std=0.01):
+def add_gaussian_noise(atom_coordinates, ordinalatoms, noise_std=0.5):
     """
     Gaussian noise with zero mean for each atomic coordinate
 
@@ -351,6 +349,7 @@ def add_gaussian_noise(atom_coordinates, ordinalatoms, noise_std=0.01):
 
     noisy_coordinates = atom_coordinates + noise
     return noisy_coordinates
+
 
 def eneforlenoutput(inipaths):
     """output the true energy-force-length

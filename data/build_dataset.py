@@ -60,8 +60,8 @@ class CrystalGraph(object):
 
         """ Although we recommend representing atoms with one hot code, you can
         use the another way with the next line: """
-        self.all_atom_feat = get_atomic_features(self.data_config['species'])
-        # self.all_atom_feat = get_atomic_feature_onehot(self.data_config['species'])
+        # self.all_atom_feat = get_atomic_features(self.data_config['species'])
+        self.all_atom_feat = get_atomic_feature_onehot(self.data_config['species'])
 
 
         """ In order to build a reasonable graph, a samll cell should be repeated.
