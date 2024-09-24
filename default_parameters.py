@@ -58,19 +58,19 @@ default_train_config = {
     'verbose': 1, # `0`: no train and validation output; `1`: Validation and test output; `2`: train, validation, and test output.
     'dataset_path': os.path.join('dataset', 'Dataset', 'all_graphs.bin'),
     'model_save_dir': os.path.join('out_put', 'agat_model'),
-    'epochs': 3000,
+    'epochs': 5000,
     'output_files': os.path.join('out_put', 'train'),
     'device': 'cuda:0',
     # 'device': 'cpu',
 
-    'validation_size': 0.15,
-    'test_size': 0.05,
+    'validation_size': 0.18,
+    'test_size': 0.02,
     'early_stop': True,
-    'stop_patience': 300,
+    'stop_patience': 800,
     'head_list': ['mul', 'div', 'free', 'sigmoid', 'softmax', 'leaky_relu'],
-    'gat_node_dim_list': [len(default_elements), 128, 128, 160, 200, 200],
-    'energy_readout_node_list': [1200, 800, 400, 200, 100, 50, 10, FIX_VALUE[0]],
-    'force_readout_node_list': [1200, 600, 400, 200, 100, 50, 10, FIX_VALUE[1]],
+    'gat_node_dim_list': [len(default_elements), 128, 160, 200, 200],
+    'energy_readout_node_list': [1200, 600, 300, 150, 50, FIX_VALUE[0]],
+    'force_readout_node_list': [1200, 600, 300, 150, 50, FIX_VALUE[1]],
     'bias': True,
     'negative_slope': 0.2,
     'criterion': nn.MSELoss(),
@@ -84,7 +84,7 @@ default_train_config = {
     'transfer_learning': False,
     'trainable_layers': -3,
     'mask_fixed': False,
-    'tail_readout_no_act': [3, 3],}
+    'tail_readout_no_act': [2, 2],}
 
 
 

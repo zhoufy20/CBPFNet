@@ -2,7 +2,7 @@
 # @Author  : Feiyu
 # @File    : Model_Test.py
 # @diligent：What doesn't kill me makes me stronger.
-# @Function: Add some Vasp files not appear in the dataset before, such as CH3CHCH3CH2CHNH2COOH
+# @Function: Base on trained model, developing automated programs to calculate the peakforce.
 
 import numpy as np
 import os
@@ -15,12 +15,13 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 
 from models.model import PotentialModel
-from lib.model_lib import (PearsonR, config_parser, load_state_dict, generatecontcar, findinistru, findpeakforce)
+from lib.model_lib import (PearsonR, config_parser, load_state_dict, generatecontcar, findinistru, eneforlenoutput)
 from data.load_dataset import LoadDataset, Collater
 from default_parameters import  default_train_config, default_data_config
 
 
 class Test(object):
+    """automated programs to calculate the peakforce"""
     def __init__(self, **test_config):
         self.test_config = {**default_data_config, **default_train_config, **config_parser(test_config)}
 
@@ -34,8 +35,7 @@ class Test(object):
         print('User info: Specified device for potential models:', self.device)
 
         # read dataset
-        # Load the binary graphs <- dataset/all_graphs.bin
-        # return graph, props
+        # Load the binary graphs <- dataset/all_graphs.bin, return graph, props
         print(f'User info: Loading dataset from {self.test_config["dataset_path"]}')
 
         if not os.path.exists(self.test_config['output_files']):
@@ -51,16 +51,14 @@ class Test(object):
                                self.test_config['bias'],
                                self.test_config['negative_slope'],
                                self.device,
-                               self.test_config['tail_readout_no_act']
-                               )
+                               self.test_config['tail_readout_no_act'])
 
         optimizer = optim.AdamW(self.model.parameters(),
                               lr=self.test_config['learning_rate'],
                               weight_decay=self.test_config['weight_decay'])
 
         # load stat dict if there exists.
-        if os.path.exists(os.path.join(self.test_config['model_save_dir'],
-                                       'agat_state_dict.pth')):
+        if os.path.exists(os.path.join(self.test_config['model_save_dir'], 'agat_state_dict.pth')):
             try:
                 checkpoint = load_state_dict(self.test_config['model_save_dir'])
                 self.model.load_state_dict(checkpoint['model_state_dict'])
@@ -75,17 +73,16 @@ class Test(object):
         else:
             print('User info: Checkpoint not detected')
 
-
         # loss function
         criterion = self.test_config['criterion']
         a = self.test_config['a']
         b = self.test_config['b']
-
         mae = nn.L1Loss()
         r = PearsonR
 
 
     def test(self, bg):
+        """test with trained model"""
         with torch.no_grad():
             energy_pred_all, force_pred_all = [], []
             energy_pred, force_pred = self.model.forward(bg)
@@ -99,11 +96,12 @@ class Test(object):
         return force_pred_all, energy_pred_all
 
     def output(self, **test_config):
+        """Automate peak force prediction"""
         self.test_config = {**self.test_config, **config_parser(test_config)}
-        trainlogpath = os.path.join(self.test_config['output_files'], 'train.log')
-        self.log = open(trainlogpath, 'w', buffering=1)
-
+        predictionlogpath = os.path.join(self.test_config['output_files'], 'prediction.log')
+        self.log = open(predictionlogpath, 'w', buffering=1)
         start_time = time.time()
+
         inipaths = findinistru(self.test_config["path_file"])
         current_directory = os.getcwd()
         f_csv = open(os.path.join(self.test_config['output_files'], 'fname_path.csv'), 'w', buffering=1)
@@ -132,7 +130,7 @@ class Test(object):
                     resultantforce = torch.norm(forceatomstre)
                     preresultantforcelist.append(resultantforce.cpu().numpy())
             prepeakforce = max(preresultantforcelist)
-            eneforlenarray = findpeakforce(os.path.abspath(os.path.join(inipath, "..")))
+            eneforlenarray, truestrainlist = eneforlenoutput(os.path.abspath(os.path.join(inipath, "..")))
             truepeakforce = max(eneforlenarray[1,:])
             error = prepeakforce-truepeakforce
             realativeerror = error/truepeakforce
@@ -141,28 +139,19 @@ class Test(object):
                 index, prepeakforce, truepeakforce, error, realativeerror, dur), file=self.log)
 
             f_csv.write(f'POSCAR{index}' + ',  ' + inipath + ',  ')
-            f_csv.write(str(prepeakforce) + ',  ' + str(truepeakforce) + ',  ' +
-                        str(error) +',  ' + str(realativeerror) +'\n')
+            f_csv.write(str(prepeakforce) + ',  ' + str(truepeakforce) + ',  ' + str(error) +',  ' + str(realativeerror) +'\n')
 
-
-            plt.figure(figsize=(10, 6))  # 调整图表大小
-            # 绘制第一条曲线，指定颜色和标记
-            plt.plot(preresultantforcelist, label='Prediction', color='blue', marker='o', linestyle='-',
-                     linewidth=2, markersize=8)
-
-            # 绘制第二条曲线，指定不同的颜色和标记
-            plt.plot(eneforlenarray[1, :], label='Truth', color='green', marker='s', linestyle='--',
-                     linewidth=2, markersize=8)
-
-            plt.xlabel('Stretch epoch', fontsize=14)  # 调整字体大小
+            # plot the force-strain about truepeakforce and predictionpeakforce
+            plt.figure(figsize=(10, 6))
+            plt.plot(strainlist, preresultantforcelist, label='Prediction', color='blue', marker='o', linestyle='-', linewidth=2, markersize=8)
+            plt.plot(truestrainlist, eneforlenarray[1, :], label='Truth', color='green', marker='s', linestyle='--', linewidth=2, markersize=8)
+            plt.xlabel('Stretch strain', fontsize=14)
             plt.ylabel('Force of prediction and true', fontsize=14)
             plt.title(f"POSCAR{index}-Force-Strain Plot", fontsize=16)
-
-            plt.grid(True, which='both', linestyle='--', linewidth=0.5)  # 添加网格
-            plt.legend()  # 添加图例
-
-            plt.savefig(f"forces{index}.png", dpi=300)  # 保存高质量图像
-            # plt.show()
+            plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+            plt.legend()
+            plt.savefig(f"forces{index}.png", dpi=300)
+            plt.show()
             plt.close()
 
             os.chdir(current_directory)

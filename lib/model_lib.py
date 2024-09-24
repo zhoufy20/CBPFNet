@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Sep 24 22:01:12 2023
+# @Time    : 2024/9/24 09:14
+# @Author  : Feiyu
+# @File    : main.py
+# @diligent：What doesn't kill me makes me stronger.
+# @Function: Some functions used in model.
 
-@author: ZHANG Jun
-"""
 #===================================================================================================
 #### reference from DOI:https://doi.org/10.1016/j.joule.2023.06.003
 #### reference code from url:https://github.com/jzhang-github/AGAT
@@ -17,12 +17,7 @@ import os
 import numpy as np
 from ase.io import read
 from ase.data import covalent_radii, atomic_numbers
-
-import json
-import copy
-import ase
-import torch
-from dgl.backend.backend import shape
+import json, copy, ase, torch
 
 
 def save_model(model, model_save_dir='agat_model'):
@@ -139,7 +134,6 @@ class EarlyStopping:
         :param model_save_dir: A directory to save the models, defaults to 'model_save_dir'
         :type model_save_dir: str, optional
 
-
         """
 
         self.model      = model
@@ -203,7 +197,6 @@ def load_graph_build_method(path):
     :rtype: dict
 
     """
-
     json_file  = path
 
     assert os.path.exists(json_file), f"{json_file} file dose not exist."
@@ -222,9 +215,7 @@ def PearsonR(y_true, y_pred):
     :rtype: torch.Tensor
 
     .. Note::
-
         It looks like the `torch.jit.script` decorator is not helping in comuputing large `torch.tensor`, see `agat/test/tesor_computation_test.py` for more details.
-
     """
     ave_y_true = torch.mean(y_true)
     ave_y_pred = torch.mean(y_pred)
@@ -247,7 +238,7 @@ def findinistru(file_path):
     return inipaths
 
 def findordinalatoms(contcarpath):
-    # find ordinal atoms
+    """find ordinal atoms, the fixed atom ends in FFF in CONTCAR"""
     ordinalatoms = []
     start_line = 5
     with open(contcarpath, 'r') as file:
@@ -259,6 +250,11 @@ def findordinalatoms(contcarpath):
     return ordinalatoms
 
 def findsamesideatom(contcarpath):
+    """In order to automate the bond breaking, we must choose the atoms at one side of the bond.
+
+    Hint: We believe that when the distance between the atoms is less than 1.15 times the sum of their radii,
+    there is a bond between the two atoms
+    """
     frames_contcar = read(contcarpath, index='-1:')
     atoms = frames_contcar[-1]
     positions = atoms.get_positions()
@@ -302,6 +298,7 @@ def findsamesideatom(contcarpath):
     return  vectorstre, neiatoms
 
 def generatecontcar(outpath, contcarpath):
+    """from initial structure, artificial simulation of bond breaking process"""
     vectorstre, neiatoms = findsamesideatom(contcarpath)
     frames_contcar = read(contcarpath, index='-1:')
     atoms = frames_contcar[-1]
@@ -341,12 +338,11 @@ def generatecontcar(outpath, contcarpath):
 def add_gaussian_noise(atom_coordinates, ordinalatoms, noise_std=0.01):
     """
     Gaussian noise with zero mean for each atomic coordinate
-    """
-    '''
+
     Hint:
         - atom_coordinates: numpy array of atomic coordinates with the shape (n_atoms, 3)
         - noise_std: indicates the standard deviation of noise. The default value is 0.05A
-    '''
+    """
     noise = np.random.normal(loc=0.0, scale=noise_std, size=atom_coordinates.shape)
 
     for i in range(atom_coordinates.shape[0]):
@@ -356,17 +352,18 @@ def add_gaussian_noise(atom_coordinates, ordinalatoms, noise_std=0.01):
     noisy_coordinates = atom_coordinates + noise
     return noisy_coordinates
 
-def findpeakforce(inipaths):
-    # now the py is in CH2CHCC2H5/CH2CHCC2H5_2/X
-    # touch an array, size of 3-fold_num
-    # all files in the current_directory
+def eneforlenoutput(inipaths):
+    """output the true energy-force-length
+
+    Hint: now the py is in CH2CHCC2H5/CH2CHCC2H5_2/X
+    """
     dirs = os.listdir(inipaths)
     dirs = [d for d in dirs if os.path.isdir(os.path.join(inipaths, d))]
     sorted_dirs = sorted(dirs, key=int)
-    # the list of molecular-name/peak-energy/peak-force/peak-length/stain
-    fold_num = sum([os.path.isdir(os.path.join(inipaths, dir_name)) for dir_name in sorted_dirs])
-    eneforlenarray = np.zeros((3, fold_num))
 
+    fold_num = sum([os.path.isdir(os.path.join(inipaths, dir_name)) for dir_name in sorted_dirs])
+    eneforlenarray = np.zeros((4, fold_num))
+    truestrainlist = []
     for dir_name in sorted_dirs:
         dir = os.path.join(inipaths, dir_name)
         if os.path.isdir(dir) and dir != '.idea':
@@ -395,7 +392,8 @@ def findpeakforce(inipaths):
                 position2 = np.array(positions[ordinalatoms[1], :], dtype=float)
                 distance = np.linalg.norm(position1 - position2)
                 eneforlenarray[2, int(dir_name)] = distance
-    return eneforlenarray
+            truestrainlist.append(eneforlenarray[2, int(dir_name)]/eneforlenarray[2, 0]-1)
+    return eneforlenarray, truestrainlist
 
 
 
