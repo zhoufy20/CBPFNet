@@ -12,8 +12,8 @@ if __name__ == '__main__':
     # data precess
     # database = BuildDatabase(path_file='../Dataset/paths.log', dataset_path="dataset/Dataset", num_of_cores=32)
     # database.build()
-
-    # model training
+    #
+    # # model training
     # f = Fit(dataset_path='dataset/Dataset/all_graphs.bin', output_files='out_put/train')
     # f.fit()
 

@@ -137,6 +137,8 @@ class Test(object):
             dur = time.time() - start_time
             print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:10.1f} Train_info".format(
                 index, prepeakforce, truepeakforce, error, realativeerror, dur), file=self.log)
+            print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:10.1f} Train_info".format(
+                index, prepeakforce, truepeakforce, error, realativeerror, dur))
 
             f_csv.write(f'POSCAR{index}' + ',  ' + inipath + ',  ')
             f_csv.write(str(prepeakforce) + ',  ' + str(truepeakforce) + ',  ' + str(error) +',  ' + str(realativeerror) +'\n')
