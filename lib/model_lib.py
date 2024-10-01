@@ -297,7 +297,8 @@ def findsamesideatom(contcarpath):
     neiatoms = list(sameside_indices)
     return  vectorstre, neiatoms
 
-def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_factor = 0.02, filenums = 30):
+
+def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_factor = 0.02, filenums = 20):
     """Return a list of dgl graph, from initial structure, artificial simulation of bond breaking process"""
     vectorstre, neiatomsside = findsamesideatom(contcarpath)
     frames_contcar = read(contcarpath, index='-1:')

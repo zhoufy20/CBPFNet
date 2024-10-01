@@ -66,7 +66,7 @@ default_train_config = {
     'validation_size': 0.18,
     'test_size': 0.02,
     'early_stop': True,
-    'stop_patience': 800,
+    'stop_patience': 300,
     'head_list': ['mul', 'div', 'free', 'sigmoid', 'softmax', 'leaky_relu'],
     'gat_node_dim_list': [len(default_elements), 128, 128, 164, 200],
     'energy_readout_node_list': [1200, 600, 300, 100, 50, FIX_VALUE[0]],
