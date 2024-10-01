@@ -298,7 +298,7 @@ def findsamesideatom(contcarpath):
     return  vectorstre, neiatoms
 
 
-def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_factor = 0.02, filenums = 20):
+def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_factor = 0.025, filenums = 40):
     """Return a list of dgl graph, from initial structure, artificial simulation of bond breaking process"""
     vectorstre, neiatomsside = findsamesideatom(contcarpath)
     frames_contcar = read(contcarpath, index='-1:')
@@ -318,7 +318,7 @@ def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_f
             new_position = [atoms.positions[neiatom][i] + vectorstre[i] * stretch_factor for i in range(3)]
             atoms.positions[neiatom] = new_position
         if whether_gaussian_noise:
-            mynoise = add_gaussian_noise(atoms.positions, ordinalatoms)
+            atoms.positions = add_gaussian_noise(atoms.positions, ordinalatoms)
         vecneiatoms = atoms.positions[ordinalatoms[0]] - atoms.positions[ordinalatoms[1]]
         distance = np.linalg.norm(vecneiatoms)
         strain = distance / orignalbondlength - 1

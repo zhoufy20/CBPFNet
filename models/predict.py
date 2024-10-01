@@ -153,5 +153,5 @@ if __name__ == '__main__':
     from data.build_dataset import BuildDatabase
     # database = BuildDatabase(path_file='../../Testset/paths.log', dataset_path="../dataset/Testset", num_of_cores=2)
     # database.build()
-    t = Test(path_file='../../Testset/paths.log', dataset_path='../dataset/Testset/all_graphs.bin', output_files='../out_put/predict')
+    t = Test(path_file='../../Dataset/paths.log', dataset_path='../dataset/Testset/all_graphs.bin', output_files='../out_put/predict')
     t.output()
