@@ -60,8 +60,8 @@ class CrystalGraph(object):
 
         """ Although we recommend representing atoms with one hot code, you can
         use the another way with the next line: """
-        # self.all_atom_feat = get_atomic_features(self.data_config['species'])
-        self.all_atom_feat = get_atomic_feature_onehot(self.data_config['species'])
+        self.all_atom_feat = get_atomic_features(self.data_config['species'])
+        # self.all_atom_feat = get_atomic_feature_onehot(self.data_config['species'])
 
 
         """ In order to build a reasonable graph, a samll cell should be repeated.
@@ -232,7 +232,6 @@ class CrystalGraph(object):
             graph_info['cell_true'] = cell_true
         if self.data_config['build_properties']['path']:
             graph_info['path'] = fname
-
         return bg, graph_info
 
     def get_graph_from_pymatgen(self, crystal_fname):

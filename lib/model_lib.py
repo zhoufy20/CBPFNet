@@ -250,10 +250,15 @@ def findordinalatoms(contcarpath):
     return ordinalatoms
 
 def findsamesideatom(contcarpath):
-    """In order to automate the bond breaking, we must choose the atoms at one side of the bond.
+    """
+    Identify atoms that are on the same side of a bond as a specified atom.
 
-    Hint: We believe that when the distance between the atoms is less than 1.15 times the sum of their radii,
-    there is a bond between the two atoms
+    Args:
+        contcarpath (str): The path to the CONTCAR file.
+
+    Returns:
+        vectorstre (numpy array): The vector pointing from one ordinal atom to another.
+        neiatoms (list): List of indices of atoms on the same side as the first ordinal atom.
     """
     frames_contcar = read(contcarpath, index='-1:')
     atoms = frames_contcar[-1]
@@ -293,12 +298,12 @@ def findsamesideatom(contcarpath):
 
         current_neighbors_adds = new_neighbors_adds  # Update with new neighbors found
 
-    vectorstre = (positions[ordinalatoms[0]] - positions[ordinalatoms[1]])/np.linalg.norm(positions[ordinalatoms[0]] - positions[ordinalatoms[1]])
+    vectorstre = (positions[ordinalatoms[1]] - positions[ordinalatoms[0]])/np.linalg.norm(positions[ordinalatoms[1]] - positions[ordinalatoms[0]])
     neiatoms = list(sameside_indices)
     return  vectorstre, neiatoms
 
 
-def generatecontcar(outpath, contcarpath, whether_gaussian_noise=None, stretch_factor = 0.025, filenums = 40):
+def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_factor = 0.02, filenums = 30):
     """Return a list of dgl graph, from initial structure, artificial simulation of bond breaking process"""
     vectorstre, neiatomsside = findsamesideatom(contcarpath)
     frames_contcar = read(contcarpath, index='-1:')
@@ -308,18 +313,18 @@ def generatecontcar(outpath, contcarpath, whether_gaussian_noise=None, stretch_f
 
     # calc the original bond length
     ordinalatoms = findordinalatoms(contcarpath)
-    vecneiatoms = atoms.positions[ordinalatoms[0]] - atoms.positions[ordinalatoms[1]]
+    vecneiatoms = atoms.positions[ordinalatoms[1]] - atoms.positions[ordinalatoms[0]]
     orignalbondlength = np.linalg.norm(vecneiatoms)
 
     bglist = []
     predictionstrainlist = []
     for filenum in range(filenums):
         for neiatom in neiatomsside:
-            new_position = [atoms.positions[neiatom][i] + vectorstre[i] * stretch_factor for i in range(3)]
+            new_position = [atoms.positions[neiatom][i] - vectorstre[i] * stretch_factor for i in range(3)]
             atoms.positions[neiatom] = new_position
         if whether_gaussian_noise:
             atoms.positions = add_gaussian_noise(atoms.positions, ordinalatoms)
-        vecneiatoms = atoms.positions[ordinalatoms[0]] - atoms.positions[ordinalatoms[1]]
+        vecneiatoms = atoms.positions[ordinalatoms[1]] - atoms.positions[ordinalatoms[0]]
         distance = np.linalg.norm(vecneiatoms)
         strain = distance / orignalbondlength - 1
         predictionstrainlist.append(strain)
@@ -330,6 +335,7 @@ def generatecontcar(outpath, contcarpath, whether_gaussian_noise=None, stretch_f
         from data.build_dataset import BuildOneGraph
         database = BuildOneGraph(path_file=poscar_filename, num_of_cores=1)
         bg = database.build()
+        print(bg)
         bglist.append(bg)
     return bglist, neiatomsside, predictionstrainlist
 
