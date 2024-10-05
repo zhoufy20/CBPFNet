@@ -4,7 +4,7 @@
 # @diligent：What doesn't kill me makes me stronger.
 # @Function: Base on trained model, developing automated programs to calculate the peakforce.
 
-import numpy as np
+
 import os
 import time
 import matplotlib.pyplot as plt
@@ -12,11 +12,9 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
 
 from models.model import PotentialModel
 from lib.model_lib import (PearsonR, config_parser, load_state_dict, generatecontcar, findinistru, eneforlenoutput)
-from data.load_dataset import LoadDataset, Collater
 from default_parameters import  default_train_config, default_data_config
 
 
@@ -35,15 +33,12 @@ class Test(object):
         print('User info: Specified device for potential models:', self.device)
 
         # read dataset
-        # Load the binary graphs <- dataset/all_graphs.bin, return graph, props
-        print(f'User info: Loading dataset from {self.test_config["dataset_path"]}')
+        print(f'User info: Loading dataset from {self.test_config["path_file"]}')
 
         if not os.path.exists(self.test_config['output_files']):
             os.makedirs(self.test_config['output_files'], exist_ok=True)
 
-        # update config if needed.
-        self.test_config = {**self.test_config, **config_parser(test_config)}
-
+        # load the saved model parameters
         self.model = PotentialModel(self.test_config['gat_node_dim_list'],
                                self.test_config['energy_readout_node_list'],
                                self.test_config['force_readout_node_list'],
@@ -52,7 +47,6 @@ class Test(object):
                                self.test_config['negative_slope'],
                                self.device,
                                self.test_config['tail_readout_no_act'])
-
         optimizer = optim.AdamW(self.model.parameters(),
                               lr=self.test_config['learning_rate'],
                               weight_decay=self.test_config['weight_decay'])
@@ -105,7 +99,6 @@ class Test(object):
         inipaths = findinistru(self.test_config["path_file"])
         current_directory = os.getcwd()
         f_csv = open(os.path.join(self.test_config['output_files'], 'fname_path.csv'), 'w', buffering=1)
-
         print('========================================================================', file=self.log)
         print(self.model, file=self.log)
         print('========================================================================', file=self.log)
@@ -113,10 +106,8 @@ class Test(object):
         # inipath:Testset/C2H5CCCH_2/0/
         for index, inipath in enumerate(inipaths):
             preresultantforcelist = []
-            # ordinalatoms start at 0
-            outpath = os.path.abspath(os.path.join(self.test_config['output_files'], f'poscar{index}'))
-
             # prepare out file
+            outpath = os.path.abspath(os.path.join(self.test_config['output_files'], 'poscarall', f'poscar{index}'))
             if not os.path.exists(outpath):
                 os.makedirs(outpath)
 
@@ -153,7 +144,7 @@ class Test(object):
             plt.grid(True, which='both', linestyle='--', linewidth=0.5)
             plt.legend()
             plt.savefig(f"forces{index}.png", dpi=300)
-            plt.show()
+            # plt.show()
             plt.close()
 
             os.chdir(current_directory)

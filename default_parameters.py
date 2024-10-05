@@ -10,23 +10,12 @@ Created on Mon Jun 26 23:07:24 2023
 import os
 import torch.nn as nn
 
-default_elements = ['Ac', 'Ag', 'Al', 'Am', 'Ar', 'As', 'At', 'Au', 'B',  'Ba',
-                    'Be', 'Bh', 'Bi', 'Bk', 'Br', 'C',  'Ca', 'Cd', 'Ce', 'Cf',
-                    'Cl', 'Cm', 'Cn', 'Co', 'Cr', 'Cs', 'Cu', 'Db', 'Ds', 'Dy',
-                    'Er', 'Es', 'Eu', 'F',  'Fe', 'Fl', 'Fm', 'Fr', 'Ga', 'Gd',
-                    'Ge', 'H',  'He', 'Hf', 'Hg', 'Ho', 'Hs', 'I',  'In', 'Ir',
-                    'K',  'Kr', 'La', 'Li', 'Lr', 'Lu', 'Lv', 'Mc', 'Md', 'Mg',
-                    'Mn', 'Mo', 'Mt', 'N',  'Na', 'Nb', 'Nd', 'Ne', 'Nh', 'Ni',
-                    'No', 'Np', 'O',  'Og', 'Os', 'P',  'Pa', 'Pb', 'Pd', 'Pm',
-                    'Po', 'Pr', 'Pt', 'Pu', 'Ra', 'Rb', 'Re', 'Rf', 'Rg', 'Rh',
-                    'Rn', 'Ru', 'S',  'Sb', 'Sc', 'Se', 'Sg', 'Si', 'Sm', 'Sn',
-                    'Sr', 'Ta', 'Tb', 'Tc', 'Te', 'Th', 'Ti', 'Tl', 'Tm', 'Ts',
-                    'U',  'V',  'W',  'Xe', 'Y',  'Yb', 'Zn', 'Zr']
+default_elements = ['H', 'C', 'N', 'O']
 
 default_build_properties = {'energy': True,
                          'forces': True,
                          'cell': False,
-                         'cart_coords': False,
+                         'cart_coords': True,
                          'frac_coords': False,
                          'constraints': False,
                          'stress': False,
@@ -68,9 +57,9 @@ default_train_config = {
     'early_stop': True,
     'stop_patience': 800,
     'head_list': ['mul', 'div', 'free', 'sigmoid', 'softmax', 'leaky_relu'],
-    'gat_node_dim_list': [len(default_elements), 128, 160, 200, 200],
-    'energy_readout_node_list': [1200, 600, 300, 150, 50, FIX_VALUE[0]],
-    'force_readout_node_list': [1200, 600, 300, 150, 50, FIX_VALUE[1]],
+    'gat_node_dim_list': [len(default_elements), 16, 32, 32, 64],
+    'energy_readout_node_list': [384, 600, 600, 300, 100, 25, FIX_VALUE[0]],
+    'force_readout_node_list': [384, 400, 800, 800, 600, 300, 100, 25, FIX_VALUE[1]],
     'bias': True,
     'negative_slope': 0.2,
     'criterion': nn.MSELoss(),
