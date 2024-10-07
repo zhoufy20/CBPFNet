@@ -3,7 +3,7 @@
 # @FileName  :atomic_feature.py
 # @Time      :2024/3/24 13:51
 # @Author    :Feiyu
-# @Main      :Extra Vasp Files and construct a dgl graph
+# @Main      :Extra Vasp Files and construct a dgl graph using ase package
 #===================================================================================================
 #### reference from DOI:https://doi.org/10.1016/j.joule.2023.06.003
 #### reference code from url:https://github.com/jzhang-github/AGAT
@@ -165,12 +165,10 @@ class CrystalGraph(object):
             num_sites = crystal.num_sites
             for i in range(num_sites):
                 ndata.append(self.all_atom_feat[crystal[i].species_string])
-
         return np.array(ndata)
 
     def get_graph_from_ase(self, fname): # ase_atoms or file name
         """ return a bidirectional graph with self-loop connection and a dict of information of graph-level features. """
-
         assert not isinstance(fname, ase.Atoms) or not self.data_config['build_properties']['forces'], \
             'The input cannot be a ase.Atoms object when include_forces is ``True``, try with an ``OUTCAR``'
 
@@ -347,7 +345,6 @@ class ReadGraphs(object):
 
 
     def read_all_graphs(self): # prop_per_node=False Deprecated!
-
         if self.data_config['load_from_binary']:
             try:
                 graph_path = os.readlink(os.path.join(self.data_config['dataset_path'], 'all_graphs.bin'))
@@ -400,12 +397,9 @@ class ExtractVaspFiles(object):
         self.data_config = {**default_data_config, **config_parser(data_config)}
         if not os.path.exists(self.data_config['dataset_path']):
             os.makedirs(self.data_config['dataset_path'])
-
         self.in_path_list = np.loadtxt(self.data_config['path_file'], dtype=str)    # path.log
         self.batch_index = np.array_split([x for x in range(len(self.in_path_list))], self.data_config['num_of_cores'])
-
         self.working_dir = os.getcwd()
-
 
     def split_output(self, process_index):
         """ Process the path index """
@@ -417,7 +411,6 @@ class ExtractVaspFiles(object):
             os.chdir(in_path)
 
             if os.path.exists('OUTCAR') and os.path.exists('XDATCAR'):
-
                 read_good = True
                 try:
                     # read frames

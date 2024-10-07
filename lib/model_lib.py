@@ -21,16 +21,14 @@ import json, copy, ase, torch
 
 
 def save_model(model, model_save_dir='agat_model'):
-    """Saving PyTorch models to the disk. Save PyTorch models, including parameters and structure. See: https://pytorch.org/tutorials/beginner/basics/saveloadrun_tutorial.html
-
+    """Saving PyTorch models to the disk. Save PyTorch models, including parameters and structure.
+    See: https://pytorch.org/tutorials/beginner/basics/saveloadrun_tutorial.html
     :param model: A PyTorch-based models.
     :type model: PyTorch-based models.
     :param model_save_dir: A directory to store the models, defaults to 'agat_model'
     :type model_save_dir: str, optional
     :output: A file saved to the disk under ``model_save_dir``.
-    :outputtype: A file.
-
-    """
+    :outputtype: A file. """
     if not os.path.exists(model_save_dir):
         os.makedirs(model_save_dir)
     torch.save(model, os.path.join(model_save_dir, 'agat.pth'))
@@ -300,11 +298,12 @@ def findsamesideatom(contcarpath):
 
     vectorstre = (positions[ordinalatoms[1]] - positions[ordinalatoms[0]])/np.linalg.norm(positions[ordinalatoms[1]] - positions[ordinalatoms[0]])
     neiatoms = list(sameside_indices)
-    return  vectorstre, neiatoms
+    return vectorstre, neiatoms
 
 
-def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_factor = 0.02, filenums = 30):
+def generatecontcar(outpath, contcarpath, whether_gaussian_noise=False, stretch_factor = 0.02, filenums = 30):
     """Return a list of dgl graph, from initial structure, artificial simulation of bond breaking process"""
+    # all the nodes need to move, containing ordinalatoms[0]
     vectorstre, neiatomsside = findsamesideatom(contcarpath)
     frames_contcar = read(contcarpath, index='-1:')
     atoms = frames_contcar[-1]
@@ -316,8 +315,7 @@ def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_f
     vecneiatoms = atoms.positions[ordinalatoms[1]] - atoms.positions[ordinalatoms[0]]
     orignalbondlength = np.linalg.norm(vecneiatoms)
 
-    bglist = []
-    predictionstrainlist = []
+    bglist, predictionstrainlist = [], []
     for filenum in range(filenums):
         for neiatom in neiatomsside:
             new_position = [atoms.positions[neiatom][i] - vectorstre[i] * stretch_factor for i in range(3)]
@@ -340,26 +338,20 @@ def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_f
 
 
 def add_gaussian_noise(atom_coordinates, ordinalatoms, noise_std=0.01):
-    """
-    Gaussian noise with zero mean for each atomic coordinate
-
+    """ Gaussian noise with zero mean for each atomic coordinate
     Hint:
         - atom_coordinates: numpy array of atomic coordinates with the shape (n_atoms, 3)
-        - noise_std: indicates the standard deviation of noise. The default value is 0.05A
-    """
+        - noise_std: indicates the standard deviation of noise. The default value is 0.05A """
     noise = np.random.normal(loc=0.0, scale=noise_std, size=atom_coordinates.shape)
 
     for i in range(atom_coordinates.shape[0]):
         if i in ordinalatoms:
             noise[i, :] = 0
-
     noisy_coordinates = atom_coordinates + noise
     return noisy_coordinates
 
-
 def eneforlenoutput(inipaths):
     """output the true energy-force-length
-
     Hint: now the py is in CH2CHCC2H5/CH2CHCC2H5_2/X
     """
     dirs = os.listdir(inipaths)

@@ -58,7 +58,7 @@ default_train_config = {
     'verbose': 1, # `0`: no train and validation output; `1`: Validation and test output; `2`: train, validation, and test output.
     'dataset_path': os.path.join('dataset', 'Dataset', 'all_graphs.bin'),
     'model_save_dir': os.path.join('out_put', 'agat_model'),
-    'epochs': 10,
+    'epochs': 500,
     'output_files': os.path.join('out_put', 'train'),
     'device': 'cuda:0',
     # 'device': 'cpu',
@@ -66,7 +66,7 @@ default_train_config = {
     'validation_size': 0.20,
     'test_size': 0.05,
     'early_stop': True,
-    'stop_patience': 1000,
+    'stop_patience': 50,
     'head_list': ['mul', 'div', 'free'],
     'gat_node_dim_list': [len(default_elements), 128, 128, 164, 164, 200, 200],
     'energy_readout_node_list': [600, 500, 300, 150, 100, 50, 25, 10, FIX_VALUE[0]],
