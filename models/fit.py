@@ -195,17 +195,13 @@ class Fit(object):
                 force_true = graph.ndata['forces_true']
                 if not torch.isfinite(energy_true).all():
                     print("A non-finite value exists in energy_true")
-                    print(graph)
-                    print(props)
-                    print(graph.ndata['forces_true'])
-                    print(props['energy_true'])
+                    print(graph, props)
+                    print(graph.ndata['forces_true'], props['energy_true'])
                     break
                 if not torch.isfinite(force_true).all():
                     print("A non-finite value exists in force_true")
-                    print(graph)
-                    print(props)
-                    print(graph.ndata['forces_true'])
-                    print(props['energy_true'])
+                    print(graph, props)
+                    print(graph.ndata['forces_true'], props['energy_true'])
                     break
 
                 optimizer.zero_grad()

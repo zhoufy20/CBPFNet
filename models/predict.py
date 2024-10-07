@@ -71,8 +71,6 @@ class Test(object):
         criterion = self.test_config['criterion']
         a = self.test_config['a']
         b = self.test_config['b']
-        mae = nn.L1Loss()
-        r = PearsonR
 
 
     def test(self, bg):
@@ -97,6 +95,7 @@ class Test(object):
         start_time = time.time()
 
         inipaths = findinistru(self.test_config["path_file"])
+        preforcelist, trueforcelist = [], []
         current_directory = os.getcwd()
         f_csv = open(os.path.join(self.test_config['output_files'], 'fname_path.csv'), 'w', buffering=1)
         print('========================================================================', file=self.log)
@@ -108,6 +107,7 @@ class Test(object):
             preresultantforcelist = []
             # prepare out file
             outpath = os.path.abspath(os.path.join(self.test_config['output_files'], 'poscarall', f'poscar{index}'))
+
             if not os.path.exists(outpath):
                 os.makedirs(outpath)
             contcarpath = os.path.join(inipath, "CONTCAR")
@@ -116,12 +116,26 @@ class Test(object):
                 for i, bg in enumerate(bglist):
                     bg = bg.to(self.device)
                     force_pred_all, energy_pred_all = self.test(bg)
-                    forceatomstre = force_pred_all[ordinalatoms[1]]
+                    forceatomstre = force_pred_all[ordinalatoms[0]]
                     resultantforce = torch.norm(forceatomstre)
                     preresultantforcelist.append(resultantforce.cpu().numpy())
             prepeakforce = max(preresultantforcelist)
             eneforlenarray, truestrainlist = eneforlenoutput(os.path.abspath(os.path.join(inipath, "..")))
             truepeakforce = max(eneforlenarray[1,:])
+            preforcelist.append(prepeakforce)
+            trueforcelist.append(truepeakforce)
+
+            # outputtruepath = os.path.join(outpath, 'trueforce.csv')
+            # outputprepath = os.path.join(outpath, 'preforce.csv')
+            #
+            # with open(outputtruepath, 'w', newline='') as csvfile:
+            #     writer = csv.writer(csvfile)
+            #     for true_strain, trforce in zip(truestrainlist, eneforlenarray[1, :]):
+            #         writer.writerow([true_strain, trforce])
+            # with open(outputprepath, 'w', newline='') as csvfile:
+            #     writer = csv.writer(csvfile)
+            #     for strain, pre_force in zip(strainlist, preresultantforcelist):
+            #         writer.writerow([strain, pre_force])
             error = prepeakforce-truepeakforce
             realativeerror = error/truepeakforce
             dur = time.time() - start_time
@@ -133,6 +147,7 @@ class Test(object):
             f_csv.write(f'POSCAR{index}' + ',  ' + inipath + ',  ')
             f_csv.write(str(prepeakforce) + ',  ' + str(truepeakforce) + ',  ' + str(error) +',  ' + str(realativeerror) +'\n')
 
+
             # plot the force-strain about truepeakforce and predictionpeakforce
             plt.figure(figsize=(10, 6))
             plt.plot(strainlist, preresultantforcelist, label='Prediction', color='blue', marker='o', linestyle='-', linewidth=2, markersize=8)
@@ -143,10 +158,21 @@ class Test(object):
             plt.grid(True, which='both', linestyle='--', linewidth=0.5)
             plt.legend()
             plt.savefig(f"forces{index}.png", dpi=300)
-            # plt.show()
             plt.close()
 
             os.chdir(current_directory)
+        mae = nn.L1Loss()
+        r = PearsonR
+        preforcelist = [arr.item() for arr in preforcelist]
+        trueforcelist = [arr.item() for arr in trueforcelist]
+
+        preforce_tensor = torch.tensor(preforcelist)
+        trueforce_tensor = torch.tensor(trueforcelist)
+
+        force_mae = mae(preforce_tensor, trueforce_tensor)
+        force_r = r(preforce_tensor, trueforce_tensor)
+
+        print(f'''Force_MAE : {force_mae.item()}  Force_R : {force_r.item()}''')
 
 if __name__ == '__main__':
     from data.build_dataset import BuildDatabase

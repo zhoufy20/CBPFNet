@@ -7,17 +7,21 @@
 from data.build_dataset import BuildDatabase
 from models.fit import Fit
 from models.predict import Test
+from models.echo import echo
 
 if __name__ == '__main__':
     # data precess
-    database = BuildDatabase(path_file='../Dataset/paths.log', dataset_path="dataset/Dataset", num_of_cores=32)
-    database.build()
+    # database = BuildDatabase(path_file='../Dataset/paths.log', dataset_path="dataset/Dataset", num_of_cores=32)
+    # database.build()
 
     # model training
-    f = Fit(dataset_path='dataset/Dataset/all_graphs.bin', output_files='out_put/train')
-    f.fit()
-    #
-    # # # model test
+    # f = Fit(dataset_path='dataset/Dataset/all_graphs.bin', output_files='out_put/train')
+    # f.fit()
+
+    # # model test
     t = Test(path_file='../Dataset/paths.log', output_files='out_put/datasetpredict')
+    t.output()
+
+    t = echo(path_file='../Dataset/paths.log', output_files='out_put/datasetpredict')
     t.output()
 

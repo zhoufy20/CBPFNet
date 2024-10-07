@@ -296,12 +296,12 @@ def findsamesideatom(contcarpath):
 
         current_neighbors_adds = new_neighbors_adds  # Update with new neighbors found
 
-    vectorstre = (positions[ordinalatoms[1]] - positions[ordinalatoms[0]])/np.linalg.norm(positions[ordinalatoms[1]] - positions[ordinalatoms[0]])
+    vectorstre = (positions[ordinalatoms[0]] - positions[ordinalatoms[1]])/np.linalg.norm(positions[ordinalatoms[0]] - positions[ordinalatoms[1]])
     neiatoms = list(sameside_indices)
     return vectorstre, neiatoms
 
 
-def generatecontcar(outpath, contcarpath, whether_gaussian_noise=False, stretch_factor = 0.02, filenums = 30):
+def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_factor = 0.02, filenums = 30):
     """Return a list of dgl graph, from initial structure, artificial simulation of bond breaking process"""
     # all the nodes need to move, containing ordinalatoms[0]
     vectorstre, neiatomsside = findsamesideatom(contcarpath)
@@ -312,17 +312,17 @@ def generatecontcar(outpath, contcarpath, whether_gaussian_noise=False, stretch_
 
     # calc the original bond length
     ordinalatoms = findordinalatoms(contcarpath)
-    vecneiatoms = atoms.positions[ordinalatoms[1]] - atoms.positions[ordinalatoms[0]]
+    vecneiatoms = atoms.positions[ordinalatoms[0]] - atoms.positions[ordinalatoms[1]]
     orignalbondlength = np.linalg.norm(vecneiatoms)
 
     bglist, predictionstrainlist = [], []
     for filenum in range(filenums):
         for neiatom in neiatomsside:
-            new_position = [atoms.positions[neiatom][i] - vectorstre[i] * stretch_factor for i in range(3)]
+            new_position = [atoms.positions[neiatom][i] + vectorstre[i] * stretch_factor for i in range(3)]
             atoms.positions[neiatom] = new_position
         if whether_gaussian_noise:
             atoms.positions = add_gaussian_noise(atoms.positions, ordinalatoms)
-        vecneiatoms = atoms.positions[ordinalatoms[1]] - atoms.positions[ordinalatoms[0]]
+        vecneiatoms = atoms.positions[ordinalatoms[0]] - atoms.positions[ordinalatoms[1]]
         distance = np.linalg.norm(vecneiatoms)
         strain = distance / orignalbondlength - 1
         predictionstrainlist.append(strain)
@@ -337,8 +337,10 @@ def generatecontcar(outpath, contcarpath, whether_gaussian_noise=False, stretch_
     return bglist, neiatomsside, predictionstrainlist
 
 
-def add_gaussian_noise(atom_coordinates, ordinalatoms, noise_std=0.01):
-    """ Gaussian noise with zero mean for each atomic coordinate
+def add_gaussian_noise(atom_coordinates, ordinalatoms, noise_std=0.001):
+    """
+    Gaussian noise with zero mean for each atomic coordinate
+
     Hint:
         - atom_coordinates: numpy array of atomic coordinates with the shape (n_atoms, 3)
         - noise_std: indicates the standard deviation of noise. The default value is 0.05A """
