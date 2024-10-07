@@ -132,10 +132,7 @@ class PotentialModel(nn.Module):
         # attention heads
         self.head_fn = {'mul' : self.mul,
                         'div' : self.div,
-                        'free': self.free,
-                        'sigmoid':self.sigmoid,
-                        'softmax':self.softmax,
-                        'leaky_relu':self.leaky_relu}
+                        'free': self.free}
 
     def mul(self, TorchTensor):
         """ Multiply head. """
@@ -150,21 +147,6 @@ class PotentialModel(nn.Module):
     def free(self, TorchTensor):
         """ Free head. """
         return torch.ones(TorchTensor.size(), device=self.device)
-
-    def sigmoid(self, TorchTensor):
-        """ Sigmoid attention head. """
-        # Apply Sigmoid function element-wise to the input tensor
-        return torch.sigmoid(TorchTensor)
-
-    def softmax(self, TorchTensor):
-        """ Softmax attention head. """
-        # Apply Softmax function along the last dimension of the input tensor
-        return torch.softmax(TorchTensor, dim=-1)
-
-    def leaky_relu(self, TorchTensor, negative_slope=0.01):
-        """ Leaky ReLU attention head. """
-        # Apply Leaky ReLU function element-wise to the input tensor
-        return (TorchTensor > 0) * TorchTensor + (TorchTensor <= 0) * (negative_slope * TorchTensor)
 
     def get_head_mechanism(self, fn_list, TorchTensor):
         """ Get attention heads
@@ -229,7 +211,7 @@ class AtomicVectorModel(nn.Module):
 if __name__ == '__main__':
     import dgl
     g_list, l_list = dgl.load_graphs('../dataset/C2CTestset/all_graphs.bin')
-    head_list= ['mul', 'div', 'free', 'sigmoid', 'softmax', 'leaky_relu']
+    head_list= ['mul', 'div', 'free']
     gat_node_dim_list= [4, 10, 20, 50, 100, 100]
     energy_readout_node_list = [600, 500, 400, 300, 150, 100, 50, 25, 10, 5, 3] # the first value should be: len(head_list)*gat_node_dim_list[-1]
     force_readout_node_list = [600, 500, 400, 300, 150, 100, 50, 25, 10, 5, 1]# the first value should be: len(head_list)*gat_node_dim_list[-1]

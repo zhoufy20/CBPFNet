@@ -10,12 +10,23 @@ Created on Mon Jun 26 23:07:24 2023
 import os
 import torch.nn as nn
 
-default_elements = ['H', 'C', 'N', 'O']
+default_elements = ['Ac', 'Ag', 'Al', 'Am', 'Ar', 'As', 'At', 'Au', 'B',  'Ba',
+                    'Be', 'Bh', 'Bi', 'Bk', 'Br', 'C',  'Ca', 'Cd', 'Ce', 'Cf',
+                    'Cl', 'Cm', 'Cn', 'Co', 'Cr', 'Cs', 'Cu', 'Db', 'Ds', 'Dy',
+                    'Er', 'Es', 'Eu', 'F',  'Fe', 'Fl', 'Fm', 'Fr', 'Ga', 'Gd',
+                    'Ge', 'H',  'He', 'Hf', 'Hg', 'Ho', 'Hs', 'I',  'In', 'Ir',
+                    'K',  'Kr', 'La', 'Li', 'Lr', 'Lu', 'Lv', 'Mc', 'Md', 'Mg',
+                    'Mn', 'Mo', 'Mt', 'N',  'Na', 'Nb', 'Nd', 'Ne', 'Nh', 'Ni',
+                    'No', 'Np', 'O',  'Og', 'Os', 'P',  'Pa', 'Pb', 'Pd', 'Pm',
+                    'Po', 'Pr', 'Pt', 'Pu', 'Ra', 'Rb', 'Re', 'Rf', 'Rg', 'Rh',
+                    'Rn', 'Ru', 'S',  'Sb', 'Sc', 'Se', 'Sg', 'Si', 'Sm', 'Sn',
+                    'Sr', 'Ta', 'Tb', 'Tc', 'Te', 'Th', 'Ti', 'Tl', 'Tm', 'Ts',
+                    'U',  'V',  'W',  'Xe', 'Y',  'Yb', 'Zn', 'Zr']
 
 default_build_properties = {'energy': True,
                          'forces': True,
                          'cell': False,
-                         'cart_coords': True,
+                         'cart_coords': False,
                          'frac_coords': False,
                          'constraints': False,
                          'stress': False,
@@ -47,7 +58,7 @@ default_train_config = {
     'verbose': 1, # `0`: no train and validation output; `1`: Validation and test output; `2`: train, validation, and test output.
     'dataset_path': os.path.join('dataset', 'Dataset', 'all_graphs.bin'),
     'model_save_dir': os.path.join('out_put', 'agat_model'),
-    'epochs': 5000,
+    'epochs': 8000,
     'output_files': os.path.join('out_put', 'train'),
     'device': 'cuda:0',
     # 'device': 'cpu',
@@ -55,11 +66,11 @@ default_train_config = {
     'validation_size': 0.18,
     'test_size': 0.02,
     'early_stop': True,
-    'stop_patience': 800,
-    'head_list': ['mul', 'div', 'free', 'sigmoid', 'softmax', 'leaky_relu'],
-    'gat_node_dim_list': [len(default_elements), 16, 32, 32, 64],
-    'energy_readout_node_list': [384, 600, 600, 300, 100, 25, FIX_VALUE[0]],
-    'force_readout_node_list': [384, 400, 800, 800, 600, 300, 100, 25, FIX_VALUE[1]],
+    'stop_patience': 1000,
+    'head_list': ['mul', 'div', 'free'],
+    'gat_node_dim_list': [len(default_elements), 128, 128, 164, 164, 200, 200, 200],
+    'energy_readout_node_list': [600, 600, 500, 300, 150, 100, 50, 25, 10, FIX_VALUE[0]],
+    'force_readout_node_list': [600, 600, 500, 300, 150, 100, 50, 25, 10, FIX_VALUE[1]],
     'bias': True,
     'negative_slope': 0.2,
     'criterion': nn.MSELoss(),

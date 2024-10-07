@@ -110,14 +110,13 @@ class Test(object):
             outpath = os.path.abspath(os.path.join(self.test_config['output_files'], 'poscarall', f'poscar{index}'))
             if not os.path.exists(outpath):
                 os.makedirs(outpath)
-
             contcarpath = os.path.join(inipath, "CONTCAR")
             with open(contcarpath, 'r') as file:
                 bglist, ordinalatoms, strainlist = generatecontcar(os.path.abspath(outpath), contcarpath)
                 for i, bg in enumerate(bglist):
                     bg = bg.to(self.device)
                     force_pred_all, energy_pred_all = self.test(bg)
-                    forceatomstre = force_pred_all[ordinalatoms[0]]
+                    forceatomstre = force_pred_all[ordinalatoms[1]]
                     resultantforce = torch.norm(forceatomstre)
                     preresultantforcelist.append(resultantforce.cpu().numpy())
             prepeakforce = max(preresultantforcelist)
@@ -153,5 +152,5 @@ if __name__ == '__main__':
     from data.build_dataset import BuildDatabase
     # database = BuildDatabase(path_file='../../Testset/paths.log', dataset_path="../dataset/Testset", num_of_cores=2)
     # database.build()
-    t = Test(path_file='../../Testset/paths.log', dataset_path='../dataset/Testset/all_graphs.bin', output_files='../out_put/predict')
+    t = Test(path_file='../../Dataset/paths.log', dataset_path='../dataset/Testset/all_graphs.bin', output_files='../out_put/predict')
     t.output()

@@ -232,7 +232,6 @@ class CrystalGraph(object):
             graph_info['cell_true'] = cell_true
         if self.data_config['build_properties']['path']:
             graph_info['path'] = fname
-
         return bg, graph_info
 
     def get_graph_from_pymatgen(self, crystal_fname):
