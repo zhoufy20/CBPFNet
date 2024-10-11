@@ -1,7 +1,6 @@
-<img src="https://readme-typing-svg.demolab.com?font=Times+New+Roman&weight=100&size=30&pause=1000&color=000000&center=true&vCenter=true&repeat=false&width=600&lines=Covalent+Bond+Peak+Force+Prediction+Network" alt="Typing SVG" />
+<a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Times+New+Roman&size=12&pause=1000&color=000000&center=true&repeat=false&width=435&lines=CBPFNet%3A+A+Pretrained+Graph+Attention+Network+for+Covalent+Bond+Loading+Peaks" alt="Typing SVG" /></a>
 
-we introduce CBPFNet (Covalent Bond Peak Force Prediction Network), a graph attention neural network model, which successfully simulates the dynamic process of covalent bond cleavage and accurately predicts the stress response of covalent bonds under various mechanical loads. Our model provides a perspective for training molecular datasets using GATs and defining covalent bond strength criteria, providing a powerful and open tool for predicting covalent bond peak force.
-
+we introduce **CBPFNet**, a pretrained Covalent Bond Peak Force Network, which simulates the dynamic process of covalent bond cleavage and accurately predicts the stress response under various mechanical loads. This work represents a significant step forward in integrating machine learning and quantum chemistry for bond rupture prediction, offering a powerful and open tool for accelerating the design and analysis of advanced materials in molecular modeling and materials science.
 
 
 ## Installation with anaconda
@@ -24,7 +23,6 @@ find . -name OUTCAR > paths.log
 sed -i 's/OUTCAR$//g' paths.log
 sed -i "s#^.#${PWD}#g" paths.log
 ```
-
 
 
 ### Data processing

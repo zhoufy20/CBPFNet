@@ -334,7 +334,7 @@ def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_f
         database = BuildOneGraph(path_file=poscar_filename, num_of_cores=1)
         bg = database.build()
         bglist.append(bg)
-    return bglist, neiatomsside, predictionstrainlist
+    return bglist, ordinalatoms, predictionstrainlist
 
 
 def add_gaussian_noise(atom_coordinates, ordinalatoms, noise_std=0.001):

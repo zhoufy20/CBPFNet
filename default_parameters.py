@@ -62,9 +62,8 @@ default_train_config = {
     'model_save_dir': os.path.join('out_put', 'agat_model'),
     'epochs': 10000,
     'output_files': os.path.join('out_put', 'train'),
-    'device': 'cuda:0',
+    'device': 'cpu',
     # 'device': 'cpu',
-
     'validation_size': 0.20,
     'test_size': 0.10,
     'early_stop': True,
