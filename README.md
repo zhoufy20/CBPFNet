@@ -4,7 +4,8 @@ Huggingface: https://huggingface.co/spaces/zhoufy20/CBPFNet
 
 we introduce **CBPFNet**, a pretrained Covalent Bond Peak Force Network, which simulates the dynamic process of covalent bond cleavage and accurately predicts the stress response under various mechanical loads. This work represents a significant step forward in integrating machine learning and quantum chemistry for bond rupture prediction, offering a powerful and open tool for accelerating the design and analysis of advanced materials in molecular modeling and materials science.
 
-
+## Arichitecture
+![CBPFNet](./assets/architecture.jpg)
 
 ## Installation with anaconda
 
