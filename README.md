@@ -1,6 +1,9 @@
-<a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Times+New+Roman&size=12&pause=1000&color=000000&center=true&repeat=false&width=435&lines=CBPFNet%3A+A+Pretrained+Graph+Attention+Network+for+Covalent+Bond+Loading+Peaks" alt="Typing SVG" /></a>
+**CBPFNet: A Pretrained Graph Attention Network for Covalent Bond Loading Peaks**
+
+Huggingface: https://huggingface.co/spaces/zhoufy20/CBPFNet
 
 we introduce **CBPFNet**, a pretrained Covalent Bond Peak Force Network, which simulates the dynamic process of covalent bond cleavage and accurately predicts the stress response under various mechanical loads. This work represents a significant step forward in integrating machine learning and quantum chemistry for bond rupture prediction, offering a powerful and open tool for accelerating the design and analysis of advanced materials in molecular modeling and materials science.
+
 
 
 ## Installation with anaconda
