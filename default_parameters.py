@@ -10,6 +10,7 @@ Created on Mon Jun 26 23:07:24 2023
 import os
 import torch.nn as nn
 
+"""For the convenience to train, we select the second default_elements"""
 # default_elements = ['Ac', 'Ag', 'Al', 'Am', 'Ar', 'As', 'At', 'Au', 'B',  'Ba',
 #                     'Be', 'Bh', 'Bi', 'Bk', 'Br', 'C',  'Ca', 'Cd', 'Ce', 'Cf',
 #                     'Cl', 'Cm', 'Cn', 'Co', 'Cr', 'Cs', 'Cu', 'Db', 'Ds', 'Dy',
@@ -43,7 +44,7 @@ default_data_config =  {
     'topology_only': False,
     'dataset_path': 'dataset', # Path where the collected data to save.
     'mode_of_NN': 'ase_dist', # How to identify connections between atoms. 'ase_natural_cutoffs', 'pymatgen_dist', 'ase_dist', 'voronoi'. Note that pymatgen is much faster than ase.
-    'cutoff': 2.0, # Cutoff distance to identify connections between atoms. Deprecated if ``mode_of_NN`` is ``'ase_natural_cutoffs'``
+    'cutoff': 3.0, # Cutoff distance to identify connections between atoms. Deprecated if ``mode_of_NN`` is ``'ase_natural_cutoffs'``
     'load_from_binary': False, # Read graphs from binary graphs that are constructed before. If this variable is ``True``, these above variables will be depressed.
     'num_of_cores': 8,
     'super_cell': False,
@@ -60,7 +61,7 @@ default_train_config = {
     'verbose': 1, # `0`: no train and validation output; `1`: Validation and test output; `2`: train, validation, and test output.
     'dataset_path': os.path.join('dataset', 'Dataset', 'all_graphs.bin'),
     'model_save_dir': os.path.join('out_put', 'agat_model'),
-    'epochs': 10000,
+    'epochs': 2,
     'output_files': os.path.join('out_put', 'train'),
     'device': 'cpu',
     # 'device': 'cpu',

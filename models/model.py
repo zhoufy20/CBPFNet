@@ -180,7 +180,7 @@ class PotentialModel(nn.Module):
         """The `forward` function of PotentialModel models, and return tuple about energy and force. """
         with graph.local_scope():
             # h : (number of nodes, dimension of one-hot code representation)
-            h    = graph.ndata['h']
+            h = graph.ndata['h']
 
             # graph.edata['dist'] : (number of edges)
             # dist : (number of edges, 1, 1)
@@ -210,8 +210,8 @@ class PotentialModel(nn.Module):
 
             for l in range(self.__real_num_force_readout_layers):
                 force_score = self.force_readout_layers[l](force_score)
-            graph.edata['force_score_vector'] = force_score * graph.edata['direction']      # shape (number of edges, 1)
-            graph.update_all(fn.copy_e('force_score_vector', 'm'), fn.sum('m', 'force_pred'))        # shape of graph.ndata['force_pred']: (number of nodes, 3)
+            graph.edata['force_score_vector'] = force_score * graph.edata['direction']  # shape (number of edges, 1)
+            graph.update_all(fn.copy_e('force_score_vector', 'm'), fn.sum('m', 'force_pred')) # shape of graph.ndata['force_pred']: (number of nodes, 3)
             force = graph.ndata['force_pred']
 
             return energy, force

@@ -68,12 +68,15 @@ class Layer(nn.Module):
 
         dist = torch.reshape(dist, (-1, self.num_heads, 1))  # shape of dist : (number of edges, number of heads, 1)
 
+        myattention = edge_softmax(graph, e)
+
         # the attention scores of every edge
         graph.edata['a']  = edge_softmax(graph, e) * dist # shape of a: (number of edges, number of heads, 1)
-
         graph.update_all(fn.u_mul_e('ft', 'a', 'm'), fn.sum('m', 'ft')) # shape of ft: (number of nodes, number of heads, number of out)
         dst = torch.reshape(graph.ndata['ft'], (-1, self.num_heads * self.out_dim)) # shape of `en`: (number of nodes, number of heads * number of out)
-        return dst # node_energy, node_force
+
+
+        return dst, myattention # node_energy, node_force
 
 if __name__ == '__main__':
     import dgl

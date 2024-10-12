@@ -15,12 +15,12 @@ if __name__ == '__main__':
     # database.build()
 
     # model training
-    f = Fit(dataset_path='dataset/Dataset/all_graphs.bin', output_files='out_put/train')
-    f.fit()
+    # f = Fit(dataset_path='dataset/Dataset/all_graphs.bin', output_files='out_put/train')
+    # f.fit()
 
     # # model test
-    # t = Test(path_file='../Dataset/paths.log', output_files='out_put/datasetpredict')
-    # t.output()
+    t = Test(path_file="./paths.log", output_files='out_put/att')
+    t.output()
 
     # t = echo(path_file='../Dataset/paths.log', output_files='out_put/datasetpredict')
     # t.output()
