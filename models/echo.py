@@ -2,7 +2,7 @@
 # @Author  : Feiyu
 # @File    : Model_Test.py
 # @diligent：What doesn't kill me makes me stronger.
-# @Function: Base on trained model, developing automated programs to calculate the peakforce.
+# @Function: echo every prediction and true force&energy.
 
 
 import os
@@ -138,7 +138,8 @@ class echo(object):
                 trueforce = np.linalg.norm(trueforces[ordinalatoms[0], :])
                 trueforcelist.append(trueforce)
 
-                f_csv.write(evepath.strip() + ',  ' + str(trueforce) + ',  ' + str(preresultantforce) + ',  ' + str(free_energy_per_atom) + ',  ' + str(preenergy) + '\n')
+                f_csv.write(evepath.strip() + ',  ' + str(trueforce) + ',  ' + str(preresultantforce) + ',  '
+                            + str(free_energy_per_atom) + ',  ' + str(preenergy) + '\n')
                 print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:1.8f}".format(
                 index, trueforce, preresultantforce, free_energy_per_atom, preenergy))
             os.chdir(current_directory)

@@ -192,7 +192,7 @@ class PotentialModel(nn.Module):
 
             # 'self.gat_layers':[len(default_elements), 10*6, 20*6, 50*6, 100*6, 100*6]
             for l in range(self.num_gat_layers):
-                h = self.gat_layers[l](h, dist, graph)                 # shape of h: (number of nodes, number of heads * num_out)
+                h, _ = self.gat_layers[l](h, dist, graph)                 # shape of h: (number of nodes, number of heads * num_out)
 
             # predict energy
             energy = h

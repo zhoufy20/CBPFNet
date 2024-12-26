@@ -301,7 +301,7 @@ def findsamesideatom(contcarpath):
     return vectorstre, neiatoms
 
 
-def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_factor = 0.02, filenums = 30):
+def generatecontcar(outpath, contcarpath, calc, whether_gaussian_noise=True, stretch_factor = 0.02, filenums = 30):
     """Return a list of dgl graph, from initial structure, artificial simulation of bond breaking process"""
     # all the nodes need to move, containing ordinalatoms[0]
     vectorstre, neiatomsside = findsamesideatom(contcarpath)
@@ -310,18 +310,25 @@ def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_f
     os.chdir(outpath)
     ase.io.write('POSCAR', atoms, format='vasp', append='w')
 
-    # calc the original bond length
+    # calculate the original bond length
     ordinalatoms = findordinalatoms(contcarpath)
     vecneiatoms = atoms.positions[ordinalatoms[0]] - atoms.positions[ordinalatoms[1]]
     orignalbondlength = np.linalg.norm(vecneiatoms)
 
     bglist, predictionstrainlist = [], []
+    dpforcelist = []
     for filenum in range(filenums):
         for neiatom in neiatomsside:
             new_position = [atoms.positions[neiatom][i] + vectorstre[i] * stretch_factor for i in range(3)]
             atoms.positions[neiatom] = new_position
         if whether_gaussian_noise:
             atoms.positions = add_gaussian_noise(atoms.positions, ordinalatoms)
+        
+        # Dp force 
+        atoms.calc = calc
+        forces_dp = atoms.get_forces(apply_constraint=False)
+        dpforcelist.append(np.linalg.norm(forces_dp))
+
         vecneiatoms = atoms.positions[ordinalatoms[0]] - atoms.positions[ordinalatoms[1]]
         distance = np.linalg.norm(vecneiatoms)
         strain = distance / orignalbondlength - 1
@@ -334,7 +341,7 @@ def generatecontcar(outpath, contcarpath, whether_gaussian_noise=True, stretch_f
         database = BuildOneGraph(path_file=poscar_filename, num_of_cores=1)
         bg = database.build()
         bglist.append(bg)
-    return bglist, ordinalatoms, predictionstrainlist
+    return bglist, ordinalatoms, predictionstrainlist, dpforcelist
 
 
 def add_gaussian_noise(atom_coordinates, ordinalatoms, noise_std=0.001):

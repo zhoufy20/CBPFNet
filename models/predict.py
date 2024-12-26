@@ -6,6 +6,7 @@
 
 
 import os
+import csv
 import time
 import matplotlib.pyplot as plt
 
@@ -90,67 +91,91 @@ class Test(object):
     def output(self, **test_config):
         """Automate peak force prediction"""
         self.test_config = {**self.test_config, **config_parser(test_config)}
-        predictionlogpath = os.path.join(self.test_config['output_files'], 'prediction.log')
-        self.log = open(predictionlogpath, 'w', buffering=1)
+        precbpflogpath = os.path.join(self.test_config['output_files'], 'prediction.log')
+        self.log = open(precbpflogpath, 'w', buffering=1)
         start_time = time.time()
+        precbpforcelist, dftcbpforcelist, dpcbpforcelist = [], [], []
 
+        """Initial DP module"""
+        # dp freeze -o graph.pb
+        # dp compress -i graph.pb -o graph-compress.pb
+        # dp test -m graph-compress.pb -s ../traindp -n 40 -d trainresults
+        from deepmd.calculator import DP
+        calc = DP(model="deepmd/deepmd_gpu/graph-compress.pb")
+
+        """find every /0/ path"""
         inipaths = findinistru(self.test_config["path_file"])
-        preforcelist, trueforcelist = [], []
         current_directory = os.getcwd()
         f_csv = open(os.path.join(self.test_config['output_files'], 'fname_path.csv'), 'w', buffering=1)
         print('========================================================================', file=self.log)
         print(self.model, file=self.log)
         print('========================================================================', file=self.log)
-        print("Epoch  prepeakforce  truepeakforce  error  realativeerror  Dur_(s)  Train_info", file=self.log)
+        print("Epoch    dppeakforce   prepeakforce  truepeakforce   error   realativeerror  Dur_(s) Train_info", file=self.log)
+        
         # inipath:Testset/C2H5CCCH_2/0/
         for index, inipath in enumerate(inipaths):
-            preresultantforcelist = []
             # prepare out file
             outpath = os.path.abspath(os.path.join(self.test_config['output_files'], 'poscarall', f'poscar{index}'))
-
+            preresultantforcelist = []
             if not os.path.exists(outpath):
                 os.makedirs(outpath)
+            # find the initial contcar to automate
             contcarpath = os.path.join(inipath, "CONTCAR")
             with open(contcarpath, 'r') as file:
-                bglist, ordinalatoms, strainlist = generatecontcar(os.path.abspath(outpath), contcarpath)
+                bglist, ordinalatoms, strainlist, dpforcelist = generatecontcar(os.path.abspath(outpath), contcarpath, calc)
                 for i, bg in enumerate(bglist):
                     bg = bg.to(self.device)
                     force_pred_all, energy_pred_all = self.test(bg)
                     forceatomstre = force_pred_all[ordinalatoms[0]]
                     resultantforce = torch.norm(forceatomstre)
                     preresultantforcelist.append(resultantforce.cpu().numpy())
+            # CBPForce prediction
             prepeakforce = max(preresultantforcelist)
+            precbpforcelist.append(prepeakforce)
+            # DFT CBPForce 
             eneforlenarray, truestrainlist = eneforlenoutput(os.path.abspath(os.path.join(inipath, "..")))
             truepeakforce = max(eneforlenarray[1,:])
-            preforcelist.append(prepeakforce)
-            trueforcelist.append(truepeakforce)
+            dftcbpforcelist.append(truepeakforce)
+            # DP CBPForce
+            dppeakforce = max(dpforcelist)
+            dpcbpforcelist.append(dppeakforce)
 
-            # outputtruepath = os.path.join(outpath, 'trueforce.csv')
-            # outputprepath = os.path.join(outpath, 'preforce.csv')
-            #
-            # with open(outputtruepath, 'w', newline='') as csvfile:
-            #     writer = csv.writer(csvfile)
-            #     for true_strain, trforce in zip(truestrainlist, eneforlenarray[1, :]):
-            #         writer.writerow([true_strain, trforce])
-            # with open(outputprepath, 'w', newline='') as csvfile:
-            #     writer = csv.writer(csvfile)
-            #     for strain, pre_force in zip(strainlist, preresultantforcelist):
-            #         writer.writerow([strain, pre_force])
+            outputtruepath = os.path.join(outpath, 'dftforce.csv')
+            outputprepath = os.path.join(outpath, 'preforce.csv')
+            outputpredppath = os.path.join(outpath, 'dpforce.csv')
+
+            with open(outputtruepath, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                for true_strain, trforce in zip(truestrainlist, eneforlenarray[1, :]):
+                    writer.writerow([true_strain, trforce])
+            with open(outputprepath, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                for strain, pre_force in zip(strainlist, preresultantforcelist):
+                    writer.writerow([strain, pre_force])
+            with open(outputpredppath, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                for strain, dp_force in zip(strainlist, dpforcelist):
+                    writer.writerow([strain, dp_force])
+
+
             error = prepeakforce-truepeakforce
-            realativeerror = error/truepeakforce
+            relaerrdp_dft = (dppeakforce-truepeakforce)/truepeakforce
+            relaerrnet_dft = (prepeakforce-truepeakforce)/truepeakforce
             dur = time.time() - start_time
-            print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:10.1f} Train_info".format(
-                index, prepeakforce, truepeakforce, error, realativeerror, dur), file=self.log)
-            print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:10.1f} Train_info".format(
-                index, prepeakforce, truepeakforce, error, realativeerror, dur))
+            print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:10.1f} Prediction_info".format(
+                index, dppeakforce, prepeakforce, truepeakforce, relaerrdp_dft, relaerrnet_dft, dur), file=self.log)
+            print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:10.1f} Prediction_info".format(
+                index, dppeakforce, prepeakforce, truepeakforce, relaerrdp_dft, relaerrnet_dft, dur))
 
             f_csv.write(f'POSCAR{index}' + ',  ' + inipath + ',  ')
-            f_csv.write(str(prepeakforce) + ',  ' + str(truepeakforce) + ',  ' + str(error) +',  ' + str(realativeerror) +'\n')
+            f_csv.write(str(dppeakforce) + ',  ' + str(prepeakforce) + ',  ' + str(truepeakforce) + ',  ' 
+                        + str(relaerrdp_dft) +',  ' + str(relaerrnet_dft) +'\n')
 
 
             # plot the force-strain about truepeakforce and predictionpeakforce
             plt.figure(figsize=(10, 6))
             plt.plot(strainlist, preresultantforcelist, label='Prediction', color='blue', marker='o', linestyle='-', linewidth=2, markersize=8)
+            plt.plot(strainlist, dpforcelist, label='DeepMD-kit', color='black', marker='s', linestyle='--', linewidth=2, markersize=8)
             plt.plot(truestrainlist, eneforlenarray[1, :], label='Truth', color='green', marker='s', linestyle='--', linewidth=2, markersize=8)
             plt.xlabel('Stretch strain', fontsize=14)
             plt.ylabel('Force of prediction and true', fontsize=14)
@@ -161,19 +186,23 @@ class Test(object):
             plt.close()
 
             os.chdir(current_directory)
+
+        """print error between precbpforcelist and dftcbpforcelist"""
         mae = nn.L1Loss()
         r = PearsonR
-        preforcelist = [arr.item() for arr in preforcelist]
-        trueforcelist = [arr.item() for arr in trueforcelist]
-
-        preforce_tensor = torch.tensor(preforcelist)
-        trueforce_tensor = torch.tensor(trueforcelist)
-
-        force_mae = mae(preforce_tensor, trueforce_tensor)
-        force_r = r(preforce_tensor, trueforce_tensor)
-
-        print(f'''Force_MAE : {force_mae.item()}  Force_R : {force_r.item()}''')
-
+        precbpforcelist = [arr.item() for arr in precbpforcelist]
+        dftcbpforcelist = [arr.item() for arr in dftcbpforcelist]
+        dpcbpforcelist = [arr.item() for arr in dpcbpforcelist]
+        preforce_tensor = torch.tensor(precbpforcelist)
+        trueforce_tensor = torch.tensor(dftcbpforcelist)
+        dpforce_tensor = torch.tensor(dpcbpforcelist)
+        pre_force_mae = mae(preforce_tensor, trueforce_tensor)
+        pre_force_r = r(preforce_tensor, trueforce_tensor)
+        dp_force_mae = mae(dpforce_tensor, trueforce_tensor)
+        dp_force_r = r(dpforce_tensor, trueforce_tensor)        
+        print(f'''CBPFNet_Force_MAE : {pre_force_mae.item()}  CBPFNet_Force_R : {pre_force_r.item()}''')
+        print(f'''Deepmd_Force_MAE : {dp_force_mae.item()}   Deepmd_Force_R : {dp_force_r.item()}''')
+        
 if __name__ == '__main__':
     from data.build_dataset import BuildDatabase
     # database = BuildDatabase(path_file='../../Testset/paths.log', dataset_path="../dataset/Testset", num_of_cores=2)
