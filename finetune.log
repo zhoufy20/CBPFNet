@@ -1,0 +1,75 @@
+User info: Specified device for potential models: cuda:0
+User info: Loading dataset from dataset/traindataset/all_graphs.bin
+User info: Model and optimizer state dict loaded successfully from out_put/agat_model.
+========================================================================
+PotentialModel(
+  (gat_layers): ModuleList(
+    (0): Layer(
+      (layer): Linear(in_features=4, out_features=48, bias=True)
+      (leaky_relu1): LeakyReLU(negative_slope=0.2)
+      (leaky_relu2): LeakyReLU(negative_slope=0.2)
+    )
+    (1): Layer(
+      (layer): Linear(in_features=48, out_features=96, bias=True)
+      (leaky_relu1): LeakyReLU(negative_slope=0.2)
+      (leaky_relu2): LeakyReLU(negative_slope=0.2)
+    )
+    (2): Layer(
+      (layer): Linear(in_features=96, out_features=192, bias=True)
+      (leaky_relu1): LeakyReLU(negative_slope=0.2)
+      (leaky_relu2): LeakyReLU(negative_slope=0.2)
+    )
+    (3): Layer(
+      (layer): Linear(in_features=192, out_features=192, bias=True)
+      (leaky_relu1): LeakyReLU(negative_slope=0.2)
+      (leaky_relu2): LeakyReLU(negative_slope=0.2)
+    )
+    (4): Layer(
+      (layer): Linear(in_features=192, out_features=384, bias=True)
+      (leaky_relu1): LeakyReLU(negative_slope=0.2)
+      (leaky_relu2): LeakyReLU(negative_slope=0.2)
+    )
+    (5): Layer(
+      (layer): Linear(in_features=384, out_features=384, bias=True)
+      (leaky_relu1): LeakyReLU(negative_slope=0.2)
+      (leaky_relu2): LeakyReLU(negative_slope=0.2)
+    )
+  )
+  (energy_readout_layers): ModuleList(
+    (0): Linear(in_features=384, out_features=400, bias=True)
+    (1): LeakyReLU(negative_slope=0.2)
+    (2): Linear(in_features=400, out_features=600, bias=True)
+    (3): LeakyReLU(negative_slope=0.2)
+    (4): Linear(in_features=600, out_features=600, bias=True)
+    (5): LeakyReLU(negative_slope=0.2)
+    (6): Linear(in_features=600, out_features=300, bias=True)
+    (7): LeakyReLU(negative_slope=0.2)
+    (8): Linear(in_features=300, out_features=150, bias=True)
+    (9): LeakyReLU(negative_slope=0.2)
+    (10): Linear(in_features=150, out_features=50, bias=True)
+    (11): LeakyReLU(negative_slope=0.2)
+    (12): Linear(in_features=50, out_features=25, bias=True)
+    (13): Linear(in_features=25, out_features=1, bias=True)
+  )
+  (force_readout_layers): ModuleList(
+    (0): Linear(in_features=384, out_features=400, bias=True)
+    (1): LeakyReLU(negative_slope=0.2)
+    (2): Linear(in_features=400, out_features=600, bias=True)
+    (3): LeakyReLU(negative_slope=0.2)
+    (4): Linear(in_features=600, out_features=800, bias=True)
+    (5): LeakyReLU(negative_slope=0.2)
+    (6): Linear(in_features=800, out_features=600, bias=True)
+    (7): LeakyReLU(negative_slope=0.2)
+    (8): Linear(in_features=600, out_features=300, bias=True)
+    (9): LeakyReLU(negative_slope=0.2)
+    (10): Linear(in_features=300, out_features=100, bias=True)
+    (11): LeakyReLU(negative_slope=0.2)
+    (12): Linear(in_features=100, out_features=25, bias=True)
+    (13): Linear(in_features=25, out_features=3, bias=True)
+  )
+)
+========================================================================
+Epoch Energy_Loss Force_Loss Stress_Loss Total_Loss Energy_MAE Force_MAE Stress_MAE Energy_R Force_R Stress_R Dur_(s) Validation_info
+00000 17.19118309 4.20394993 42056.69140625 3.76581812 0.51742327 0.58642614 -0.06152699        5.4 Validation_info
+00001 15.59007263 3.88562965 38871.88671875 3.53590727 0.47775492 0.59850037 0.14396451       11.3 Validation_info
+User info: Save models with the best score: 38871.88671875

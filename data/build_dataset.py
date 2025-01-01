@@ -243,7 +243,7 @@ class CrystalGraph(object):
            :return: A dict of information of graph-level features.
         """
         assert bool(not bool(self.data_config['super_cell'] and self.data_config['build_properties']['forces'])), 'include_forces cannot be True when super_cell is True.'
-        # https://docs.dgl.ai/guide_cn/graph-feature.html 通过张量分配创建特征时，DGL会将特征赋给图中的每个节点和每条边。该张量的第一维必须与图中节点或边的数量一致。 不能将特征赋给图中节点或边的子集。
+        # https://docs.dgl.ai/guide_cn/graph-feature.html 
         mycrystal               = self.get_crystal(crystal_fname)
         # self.cart_coords       = mycrystal.cart_coords           # reserved for other functions
 
@@ -414,8 +414,8 @@ class ExtractVaspFiles(object):
                 read_good = True
                 try:
                     # read frames
-                    frames_xdatcar  = read('XDATCAR', index='-1:')
-                    frames_outcar  = read('OUTCAR', index='-1:')   # coordinates in OUTCAR file are less accurate than that in XDATCAR. Energy in OUTCAR file is more accurate than that in OSZICAR file
+                    frames_xdatcar  = read('XDATCAR', index=slice(0, None, 5))
+                    frames_outcar  = read('OUTCAR', index=slice(0, None, 5))   # coordinates in OUTCAR file are less accurate than that in XDATCAR. Energy in OUTCAR file is more accurate than that in OSZICAR file
 
                     # pre processing
                     free_energy = [x.get_total_energy() for x in frames_outcar]

@@ -145,20 +145,13 @@ class Fit(object):
                 model.eval()
                 model = model.to(self.device)
                 model.device = self.device
-                optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+                # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
                 print(f'User info: Model and optimizer state dict loaded successfully from {self.train_config["model_save_dir"]}.', file=self.log)
             except:
                 print('User warning: Exception catched when loading models and optimizer state dict.', file=self.log)
         else:
             print('User info: Checkpoint not detected', file=self.log)
 
-        # transfer learning.
-        if self.train_config['transfer_learning']:
-            for param in model.gat_layers.parameters():
-                param.requires_grad = False
-
-            exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=100,
-                                                   gamma=0.1, verbose=True)
 
         # early stop
         if self.train_config['early_stop']:
@@ -277,9 +270,6 @@ class Fit(object):
                 save_model(model, model_save_dir=self.train_config['model_save_dir'])
                 save_state_dict(model, state_dict_save_dir=self.train_config['model_save_dir'])
 
-            if self.train_config['transfer_learning']:
-                exp_lr_scheduler.step()
-            file_exit()
 
         np.savetxt(os.path.join(self.train_config['output_files'], 'total_loss_train.txt'),
                             total_loss_train, fmt='%.8f')

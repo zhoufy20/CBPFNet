@@ -15,8 +15,13 @@ import torch.nn as nn
 import torch.optim as optim
 
 from models.model import PotentialModel
-from lib.model_lib import (PearsonR, config_parser, load_state_dict, generatecontcar, findinistru, eneforlenoutput)
+from lib.model_lib import (PearsonR, config_parser, load_state_dict, deepmdgeneratecontcar, 
+                           generatecontcar, findinistru, eneforlenoutput)
 from default_parameters import  default_train_config, default_data_config
+
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, message=".*TypedStorage is deprecated.*")
+warnings.filterwarnings("ignore", category=UserWarning, message=".*TypedStorage is deprecated.*")
 
 
 class Test(object):
@@ -37,7 +42,7 @@ class Test(object):
         print(f'User info: Loading dataset from {self.test_config["path_file"]}')
 
         if not os.path.exists(self.test_config['output_files']):
-            os.makedirs(self.test_config['output_files'], exist_ok=True)
+            os.makedirs(self.test_config['output_files'])
 
         # load the saved model parameters
         self.model = PotentialModel(self.test_config['gat_node_dim_list'],
@@ -54,17 +59,17 @@ class Test(object):
 
         # load stat dict if there exists.
         if os.path.exists(os.path.join(self.test_config['model_save_dir'], 'agat_state_dict.pth')):
-            try:
-                checkpoint = load_state_dict(self.test_config['model_save_dir'])
-                self.model.load_state_dict(checkpoint['model_state_dict'])
-                self.model.eval()
-                model = self.model.to(self.device)
-                model.device = self.device
-                optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-                print(
-                    f'User info: Model and optimizer state dict loaded successfully from {self.test_config["model_save_dir"]}.')
-            except:
-                print('User warning: Exception catched when loading models and optimizer state dict.')
+            # try:
+            checkpoint = load_state_dict(self.test_config['model_save_dir'])
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            self.model.eval()
+            model = self.model.to(self.device)
+            model.device = self.device
+            # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            print(
+                f'User info: Model and optimizer state dict loaded successfully from {self.test_config["model_save_dir"]}.')
+            # except:
+            #     print('User warning: Exception catched when loading models and optimizer state dict.')
         else:
             print('User info: Checkpoint not detected')
 
@@ -100,13 +105,22 @@ class Test(object):
         # dp freeze -o graph.pb
         # dp compress -i graph.pb -o graph-compress.pb
         # dp test -m graph-compress.pb -s ../traindp -n 40 -d trainresults
-        from deepmd.calculator import DP
-        calc = DP(model="deepmd/deepmd_gpu/graph-compress.pb")
+        if self.test_config['deepmd']:
+            from deepmd.calculator import DP
+            calc = DP(model="deepmd/deepmd_gpu/graph-compress.pb")
 
         """find every /0/ path"""
         inipaths = findinistru(self.test_config["path_file"])
         current_directory = os.getcwd()
-        f_csv = open(os.path.join(self.test_config['output_files'], 'fname_path.csv'), 'w', buffering=1)
+        f_csv_path = os.path.join(self.test_config['output_files'], 'automate.csv')
+        f = open(f_csv_path, 'w', newline='')
+        f_csv = csv.writer(f)
+        if self.test_config['deepmd']:    
+            if os.path.getsize(f_csv_path) == 0:
+                f_csv.writerow(['Index', 'Deepmd-Predict-peak-force', 'Predict-peak-force', 'DFT-peak-force', 'Deepmd-Relative-error', 'Relative-error', 'Inipath'])
+        else:
+            if os.path.getsize(f_csv_path) == 0:
+                f_csv.writerow(['Index', 'Predict-peak-force', 'DFT-peak-force', 'Relative-error', 'Inipath'])
         print('========================================================================', file=self.log)
         print(self.model, file=self.log)
         print('========================================================================', file=self.log)
@@ -122,7 +136,11 @@ class Test(object):
             # find the initial contcar to automate
             contcarpath = os.path.join(inipath, "CONTCAR")
             with open(contcarpath, 'r') as file:
-                bglist, ordinalatoms, strainlist, dpforcelist = generatecontcar(os.path.abspath(outpath), contcarpath, calc)
+
+                if self.test_config['deepmd']:
+                    bglist, ordinalatoms, strainlist, dpforcelist = deepmdgeneratecontcar(os.path.abspath(outpath), contcarpath, calc)
+
+                bglist, ordinalatoms, strainlist = generatecontcar(os.path.abspath(outpath), contcarpath)    
                 for i, bg in enumerate(bglist):
                     bg = bg.to(self.device)
                     force_pred_all, energy_pred_all = self.test(bg)
@@ -137,12 +155,14 @@ class Test(object):
             truepeakforce = max(eneforlenarray[1,:])
             dftcbpforcelist.append(truepeakforce)
             # DP CBPForce
-            dppeakforce = max(dpforcelist)
-            dpcbpforcelist.append(dppeakforce)
+            if self.test_config['deepmd']:
+                dppeakforce = max(dpforcelist)
+                dpcbpforcelist.append(dppeakforce)
 
             outputtruepath = os.path.join(outpath, 'dftforce.csv')
             outputprepath = os.path.join(outpath, 'preforce.csv')
-            outputpredppath = os.path.join(outpath, 'dpforce.csv')
+            if self.test_config['deepmd']:
+                outputpredppath = os.path.join(outpath, 'dpforce.csv')
 
             with open(outputtruepath, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
@@ -152,30 +172,48 @@ class Test(object):
                 writer = csv.writer(csvfile)
                 for strain, pre_force in zip(strainlist, preresultantforcelist):
                     writer.writerow([strain, pre_force])
-            with open(outputpredppath, 'w', newline='') as csvfile:
-                writer = csv.writer(csvfile)
-                for strain, dp_force in zip(strainlist, dpforcelist):
-                    writer.writerow([strain, dp_force])
+            if self.test_config['deepmd']:        
+                with open(outputpredppath, 'w', newline='') as csvfile:
+                    writer = csv.writer(csvfile)
+                    for strain, dp_force in zip(strainlist, dpforcelist):
+                        writer.writerow([strain, dp_force])
 
 
             error = prepeakforce-truepeakforce
-            relaerrdp_dft = (dppeakforce-truepeakforce)/truepeakforce
+            if self.test_config['deepmd']:
+                relaerrdp_dft = (dppeakforce-truepeakforce)/truepeakforce
             relaerrnet_dft = (prepeakforce-truepeakforce)/truepeakforce
             dur = time.time() - start_time
-            print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:10.1f} Prediction_info".format(
-                index, dppeakforce, prepeakforce, truepeakforce, relaerrdp_dft, relaerrnet_dft, dur), file=self.log)
-            print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:10.1f} Prediction_info".format(
-                index, dppeakforce, prepeakforce, truepeakforce, relaerrdp_dft, relaerrnet_dft, dur))
+            if self.test_config['deepmd']:
+                print("index, dppeakforce, prepeakforce, truepeakforce, relaerrdp_dft, relaerrnet_dft, dur", file=self.log)
+                print("index, dppeakforce, prepeakforce, truepeakforce, relaerrdp_dft, relaerrnet_dft, dur")
+            else:
+                print("index, prepeakforce, truepeakforce, relaerrnet_dft, dur", file=self.log)
+                print("index, prepeakforce, truepeakforce, relaerrnet_dft, dur")
 
-            f_csv.write(f'POSCAR{index}' + ',  ' + inipath + ',  ')
-            f_csv.write(str(dppeakforce) + ',  ' + str(prepeakforce) + ',  ' + str(truepeakforce) + ',  ' 
-                        + str(relaerrdp_dft) +',  ' + str(relaerrnet_dft) +'\n')
+            if self.test_config['deepmd']:
+                print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:10.1f} Prediction_info".format(
+                    index, dppeakforce, prepeakforce, truepeakforce, relaerrdp_dft, relaerrnet_dft, dur), file=self.log)
+                print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:1.8f} {:10.1f} Prediction_info".format(
+                    index, dppeakforce, prepeakforce, truepeakforce, relaerrdp_dft, relaerrnet_dft, dur))
+            else:
+                print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:10.1f} Prediction_info".format(
+                    index, prepeakforce, truepeakforce, relaerrnet_dft, dur), file=self.log)
+                print("{:0>5d} {:1.8f} {:1.8f} {:1.8f} {:10.1f} Prediction_info".format(
+                    index, prepeakforce, truepeakforce, relaerrnet_dft, dur))
 
+            if self.test_config['deepmd']:
+                data_row = [f'POSCAR{index}', dppeakforce, prepeakforce, truepeakforce, relaerrdp_dft, relaerrnet_dft, inipath]
+            else:
+                data_row = [f'POSCAR{index}', prepeakforce, truepeakforce, relaerrnet_dft, inipath]
+            
+            f_csv.writerow(data_row)                    
 
             # plot the force-strain about truepeakforce and predictionpeakforce
             plt.figure(figsize=(10, 6))
             plt.plot(strainlist, preresultantforcelist, label='Prediction', color='blue', marker='o', linestyle='-', linewidth=2, markersize=8)
-            plt.plot(strainlist, dpforcelist, label='DeepMD-kit', color='black', marker='s', linestyle='--', linewidth=2, markersize=8)
+            if self.test_config['deepmd']:
+                plt.plot(strainlist, dpforcelist, label='DeepMD-kit', color='black', marker='s', linestyle='--', linewidth=2, markersize=8)
             plt.plot(truestrainlist, eneforlenarray[1, :], label='Truth', color='green', marker='s', linestyle='--', linewidth=2, markersize=8)
             plt.xlabel('Stretch strain', fontsize=14)
             plt.ylabel('Force of prediction and true', fontsize=14)
@@ -192,16 +230,20 @@ class Test(object):
         r = PearsonR
         precbpforcelist = [arr.item() for arr in precbpforcelist]
         dftcbpforcelist = [arr.item() for arr in dftcbpforcelist]
-        dpcbpforcelist = [arr.item() for arr in dpcbpforcelist]
+        if self.test_config['deepmd']:
+            dpcbpforcelist = [arr.item() for arr in dpcbpforcelist]
         preforce_tensor = torch.tensor(precbpforcelist)
         trueforce_tensor = torch.tensor(dftcbpforcelist)
-        dpforce_tensor = torch.tensor(dpcbpforcelist)
+        if self.test_config['deepmd']:
+            dpforce_tensor = torch.tensor(dpcbpforcelist)
         pre_force_mae = mae(preforce_tensor, trueforce_tensor)
         pre_force_r = r(preforce_tensor, trueforce_tensor)
-        dp_force_mae = mae(dpforce_tensor, trueforce_tensor)
-        dp_force_r = r(dpforce_tensor, trueforce_tensor)        
+        if self.test_config['deepmd']:    
+            dp_force_mae = mae(dpforce_tensor, trueforce_tensor)
+            dp_force_r = r(dpforce_tensor, trueforce_tensor)        
         print(f'''CBPFNet_Force_MAE : {pre_force_mae.item()}  CBPFNet_Force_R : {pre_force_r.item()}''')
-        print(f'''Deepmd_Force_MAE : {dp_force_mae.item()}   Deepmd_Force_R : {dp_force_r.item()}''')
+        if self.test_config['deepmd']:
+            print(f'''Deepmd_Force_MAE : {dp_force_mae.item()}   Deepmd_Force_R : {dp_force_r.item()}''')
         
 if __name__ == '__main__':
     from data.build_dataset import BuildDatabase
