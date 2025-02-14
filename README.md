@@ -1,4 +1,4 @@
-**CBPFNet: A Pretrained Graph Attention Network for Covalent Bond Loading Peaks**
+## CBPFNet: A Pretrained Graph Attention Network for Covalent Bond Loading Peaks
 
 
 We introduce CBPFNet, a pretrained **C**ovalent **B**ond **P**eak **F**orce **Net**work, designed to simulate the dynamic process of covalent bond cleavage and accurately predict the stress response under various mechanical loads. This innovative model represents a significant advancement in the integration of machine learning with quantum chemistry for bond rupture prediction. CBPFNet leverages deep learning techniques to model and predict the behavior of covalent bonds under different mechanical stresses, enabling a more efficient and precise approach to material design and analysis. This work builds upon existing frameworks such as [AGAT](https://github.com/jzhang-github/AGAT), refining the methodology to enhance performance in predicting bond rupture dynamics. 
